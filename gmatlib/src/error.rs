@@ -71,3 +71,13 @@ impl Display for MatrixFromVecError
     }
 }
 impl Error for MatrixFromVecError {}
+
+#[derive(Debug)]
+pub struct MatrixMultiplicationError;
+impl Display for MatrixMultiplicationError
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "failed to multiply matrices because columns of left operand and rows of right operand were not equal.")
+    }
+}
+impl Error for MatrixMultiplicationError {}

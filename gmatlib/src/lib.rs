@@ -1,6 +1,6 @@
 /// Contains error type definitions for various functions in this crate. 
 pub mod error;
-/// Contains C-compatible function definitions for linking this library
+/// Contains `extern "C"` function definitions for linking this library
 /// against projects in different languages. Not intended for use in 
 /// other Rust projects.
 mod ffi;
@@ -275,6 +275,52 @@ where
         }
     }
 
+    /// Returns the matrix multiplication product of this `Matrix<T>` and 
+    /// another `Matrix<T>`. This operation will fail if the operands are
+    /// not suitable for [matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication).
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::new_identity(2);
+    /// 
+    /// let b: Matrix<i32> = Matrix::new(2, 1);
+    /// 
+    /// b[(1, 0)] = 2;
+    /// b[(1, 1)] = 3;
+    /// 
+    /// c: Vec<i32> = a.multiply_matrix(b).unwrap().into();
+    /// 
+    /// assert_eq!(
+    ///     c,
+    ///     vec![2, 3];
+    /// );
+    /// ```
+    pub fn multiply_matrix(&self, a: &Matrix<T>) -> Result<Matrix<T>>
+    {
+        if self.cols != a.rows
+        {
+            return Err(MatrixMultiplicationError.into())
+        }
+
+        let n = self.cols;
+        let mut result = Matrix::new(self.rows, a.cols);
+
+        for i in 0..self.rows
+        {
+            for j in 0..a.cols
+            {
+                for x in 0..n
+                {
+                    result[(i, j)] += self[(i, x)] * a[(x, j)]
+                }
+            }
+        }
+
+        Ok(result)
+    }
+
     /// Creates a new `Matrix<T>` with the columns of `a` appended to
     /// the columns of `self`. This operation will fail if the number 
     /// of rows in `a` does not match the number of rows in `self`.
@@ -323,10 +369,12 @@ where
     }
 
     /// Creates a new `Matrix<T>` containing the rows in a range from `r1` to
-    /// `r2` and columns in a range from `c1` to `c2`. This operation will fail
-    /// if the first row or column given is greater than or equal to the second
-    /// row or column given, respectively, or if the row or column specified is
-    /// out of the range of the matrix.
+    /// `r2` and columns in a range from `c1` to `c2`. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the first row or column given is greater 
+    /// than or equal to the second row or column given, respectively, or if 
+    /// the row or column specified is out of the range of the matrix.
     /// 
     /// # Example
     /// ```
@@ -660,6 +708,138 @@ where
     /// ``` 
     fn bitor(self, rhs: Self) -> Self::Output {
         self.augment_with(&rhs).unwrap()
+    }
+}
+
+impl <T> Mul for Matrix<T>
+where
+    T: Add + AddAssign + Add<Output = T>
+    + Copy
+    + Div + Div<Output = T>
+    + From<i32>
+    + Mul + MulAssign + Mul<Output = T>
+    + Neg + Neg<Output = T>
+    + PartialEq
+    + Sub + Sub<Output = T>
+{
+    type Output = Self;
+
+    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
+    /// or `Matrix<T>`. For matrix-scalar multiplication, 
+    /// this scales the elements in the left operand. For 
+    /// matrix-vector multiplication, this operator treats
+    /// the left-hand operand as a row vector and the right-hand
+    /// operand as a column vector. For pure matrix multiplication,
+    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
+    /// of the operands. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the operands 
+    /// are not suitable for multiplication (i.e.
+    /// matrices/vectors are not the correct shape.)
+    /// 
+    /// # Example
+    /// Matrix-matrix multiplication:
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::new_identity(3);
+    /// let b: Vec<i32> = vec![1, 2, 3];
+    /// 
+    /// let c: Vec<i32> = (a * b).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
+    /// assert_eq!(
+    ///     c,
+    ///     vec![1,
+    ///          2,
+    ///          3]
+    /// );
+    /// ```
+    fn mul(self, rhs: Self) -> Self::Output 
+    {
+        self.multiply_matrix(&rhs).unwrap()
+    }
+}
+
+impl <T> Mul<Vec<T>> for Matrix<T>
+where
+    T: Add + AddAssign + Add<Output = T>
+    + Copy
+    + Div + Div<Output = T>
+    + From<i32>
+    + Mul + MulAssign + Mul<Output = T>
+    + Neg + Neg<Output = T>
+    + PartialEq
+    + Sub + Sub<Output = T>
+{
+    type Output = Matrix<T>;
+
+    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
+    /// or `Matrix<T>`. For matrix-scalar multiplication, 
+    /// this scales the elements in the left operand. For 
+    /// matrix-vector multiplication, this operator treats
+    /// the left-hand operand as a row vector and the right-hand
+    /// operand as a column vector. For pure matrix multiplication,
+    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
+    /// of the operands. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the operands 
+    /// are not suitable for multiplication (i.e.
+    /// matrices/vectors are not the correct shape.)
+    /// 
+    /// # Example
+    /// Matrix-matrix multiplication:
+    /// ```
+    fn mul(self, rhs: Vec<T>) -> Self::Output {
+        self * Matrix { rows: rhs.len(), cols: 1, vals: rhs }
+    }
+}
+
+impl <T> Mul<Matrix<T>> for Vec<T>
+where
+    T: Add + AddAssign + Add<Output = T>
+    + Copy
+    + Div + Div<Output = T>
+    + From<i32>
+    + Mul + MulAssign + Mul<Output = T>
+    + Neg + Neg<Output = T>
+    + PartialEq
+    + Sub + Sub<Output = T>
+{
+    type Output = Matrix<T>;
+
+    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
+    /// or `Matrix<T>`. For matrix-scalar multiplication, 
+    /// this scales the elements in the left operand. For 
+    /// matrix-vector multiplication, this operator treats
+    /// the left-hand operand as a row vector and the right-hand
+    /// operand as a column vector. For pure matrix multiplication,
+    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
+    /// of the operands. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the operands 
+    /// are not suitable for multiplication (i.e.
+    /// matrices/vectors are not the correct shape.)
+    /// 
+    /// # Example
+    /// Matrix-vector multiplication:
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::new_identity(3);
+    /// let b: Vec<i32> = vec![1, 2, 3];
+    /// 
+    /// let c: Vec<i32> = (a * b).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
+    /// assert_eq!(
+    ///     c,
+    ///     vec![1,
+    ///          2,
+    ///          3]
+    /// );
+    /// ```
+    fn mul(self, rhs: Matrix<T>) -> Self::Output {
+        Matrix { rows: 1, cols: self.len(), vals: self } * rhs
     }
 }
 
