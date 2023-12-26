@@ -155,6 +155,7 @@ where
     ///          3]
     /// );
     /// ```
+    #[inline]
     fn mul(self, rhs: Self) -> Self::Output 
     {
         self.multiply_matrix(&rhs).unwrap()
@@ -192,6 +193,7 @@ where
     /// Matrix-matrix multiplication:
     /// ```
     /// ```
+    #[inline]
     fn mul(self, rhs: Vec<T>) -> Self::Output {
         self * Matrix { rows: rhs.len(), cols: 1, vals: rhs }
     }
@@ -240,6 +242,7 @@ where
     ///          3]
     /// );
     /// ```
+    #[inline]
     fn mul(self, rhs: Matrix<T>) -> Self::Output {
         Matrix { rows: 1, cols: self.len(), vals: self } * rhs
     }
@@ -279,7 +282,7 @@ impl <T> Index<(usize, usize)> for Matrix<T>
     /// // what we're doing better:
     /// assert_eq!(a[(1, 1)], b[4]);
     /// ```
-    #[inline(always)]
+    #[inline]
     fn index(&self, index: (usize, usize)) -> &T 
     {
         if index.0 >= self.rows || index.1 >= self.cols 
@@ -315,7 +318,7 @@ impl <T> IndexMut<(usize, usize)> for Matrix<T>
     /// // what we're doing better:
     /// assert_eq!(a[(1, 1)], b[4]);
     /// ```
-    #[inline(always)]
+    #[inline]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut T 
     {
         &mut (self.vals[index.0 * self.cols + index.1])
