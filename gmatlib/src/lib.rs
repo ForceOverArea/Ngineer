@@ -285,16 +285,16 @@ where
     /// 
     /// let a: Matrix<i32> = Matrix::new_identity(2);
     /// 
-    /// let b: Matrix<i32> = Matrix::new(2, 1);
+    /// let mut b: Matrix<i32> = Matrix::new(2, 1);
     /// 
-    /// b[(1, 0)] = 2;
-    /// b[(1, 1)] = 3;
+    /// b[(0, 0)] = 2;
+    /// b[(1, 0)] = 3;
     /// 
-    /// c: Vec<i32> = a.multiply_matrix(b).unwrap().into();
+    /// let c: Vec<i32> = a.multiply_matrix(&b).unwrap().into();
     /// 
     /// assert_eq!(
     ///     c,
-    ///     vec![2, 3];
+    ///     vec![2, 3]
     /// );
     /// ```
     pub fn multiply_matrix(&self, a: &Matrix<T>) -> Result<Matrix<T>>
@@ -404,6 +404,59 @@ where
         }
 
         b
+    }
+
+    /// Transposes this matrix, mirroring it about 
+    /// it's diagonal.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let mut a: Matrix<i32> = Matrix::from_vec(
+    ///     2, 
+    ///     vec![1, 2,
+    ///          3, 4,
+    ///          5, 6]
+    /// ).unwrap();
+    /// 
+    /// a.inplace_transpose();
+    /// 
+    /// let a_vec: Vec<i32> = a.into();
+    /// 
+    /// assert_eq!(
+    ///     a_vec,
+    ///     vec![1, 3, 5,
+    ///          2, 4, 6]
+    /// );
+    /// ```
+    pub fn inplace_transpose(&mut self) -> ()
+    {
+        let mut storage: T;
+        let mut ci: usize; // current index
+        let mut ti: usize; // transposed index to move value to
+
+        for i in 0..self.rows
+        {
+            for j in 0..self.cols
+            {
+                if i == j // ignore diagonal. This is not affected by transposing a matrix
+                {
+                    continue;
+                }
+                ci = self.cols * i + j;
+                ti = self.rows * j + i;
+
+                storage       = self.vals[ti];
+                self.vals[ti] = self.vals[ci];
+                self.vals[ci] = storage;
+            }
+        }
+
+        // switch the number of rows and columns
+        let storage = self.rows;
+        self.rows = self.cols;
+        self.cols = storage;
     }
 
     /// Attempts to invert a 2x2 `Matrix<T>` in-place.
@@ -790,6 +843,7 @@ where
     /// # Example
     /// Matrix-matrix multiplication:
     /// ```
+    /// ```
     fn mul(self, rhs: Vec<T>) -> Self::Output {
         self * Matrix { rows: rhs.len(), cols: 1, vals: rhs }
     }
@@ -880,6 +934,10 @@ impl <T> Index<(usize, usize)> for Matrix<T>
     #[inline(always)]
     fn index(&self, index: (usize, usize)) -> &T 
     {
+        if index.0 >= self.rows || index.1 >= self.cols 
+        {
+            panic!("index out of bounds: the matrix has {} rows and {} cols but the index was [({}, {})]", self.rows, self.cols, index.0, index.1)
+        }
         &(self.vals[index.0 * self.cols + index.1])
     }
 }
