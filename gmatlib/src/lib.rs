@@ -8,6 +8,7 @@ mod trait_impls;
 /// other Rust projects.
 mod ffi;
 
+use std::convert::From;
 use std::fmt::Debug;
 use std::mem;
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
@@ -32,7 +33,8 @@ where
     T: Add + AddAssign + Add<Output = T>
      + Copy
      + Div + Div<Output = T>
-     + From<i32> + From<f64>
+     + From<f64>
+     + Into<f64>
      + Mul + MulAssign + Mul<Output = T>
      + Neg + Neg<Output = T>
      + PartialEq
@@ -63,7 +65,7 @@ where
         
         for _ in 0..a.vals.capacity()
         {
-            a.vals.push(0.into());
+            a.vals.push(0.0.into());
         }
 
         a
@@ -89,7 +91,7 @@ where
         
         for i in 0..n
         {
-            a[(i, i)] = 1.into();
+            a[(i, i)] = f64::from(1).into();
         } 
 
         a
@@ -458,7 +460,7 @@ where
             return Err(NonSquareMatrixError.into())
         }
 
-        let mut total: T = 0.into();
+        let mut total: T = 0.0.into();
         for i in 0..self.rows
         {
             total += self[(i, i)];
@@ -530,7 +532,7 @@ where
 
         let det = a11*a22 - a12*a21;
 
-        if det == 0.into()
+        if det == 0.0.into()
         {
             return Err(MatrixInversionError::DeterminantWasZero.into())
         }
@@ -559,7 +561,7 @@ where
         let det  = a11*a22*a33 + a21*a32*a13 + a31*a12*a23 
                  - a11*a32*a23 - a31*a22*a13 - a21*a12*a33;
 
-        if det == 0.into()
+        if det == 0.0.into()
         {
             return Err(MatrixInversionError::DeterminantWasZero.into())
         }
@@ -606,7 +608,7 @@ where
                    a13*a21*a34*a42 - a13*a22*a31*a44 - a13*a24*a32*a41 -
                    a14*a21*a32*a43 - a14*a22*a33*a41 - a14*a23*a31*a42;
 
-        if det == 0.into()
+        if det == 0.0.into()
         {
             return Err(MatrixInversionError::DeterminantWasZero.into());
         }
@@ -648,7 +650,7 @@ where
                 }
                 else
                 {
-                    if self[(j, j)] == 0.into()
+                    if self[(j, j)] == 0.0.into()
                     {
                         return Err(MatrixInversionError::ZeroDuringInversion.into())
                     }
@@ -661,7 +663,7 @@ where
 
         for i in 0..n
         {
-            let scalar: T = <i32 as Into<T>>::into(1) / self[(i, i)];
+            let scalar: T = <f64 as Into<T>>::into(1.0) / self[(i, i)];
             self.inplace_row_scale(i, scalar);
             inv.inplace_row_scale(i, scalar);
         }
@@ -697,13 +699,13 @@ where
             return Err(NonSquareMatrixError.into())
         }
 
-        if self.rows == 1 && self.vals[0] == 0.into()
+        if self.rows == 1 && self.vals[0] == 0.0.into()
         {
             return Err(Error::new(MatrixInversionError::SingularValueWasZero))
         }
 
         match self.rows {
-            1 => self.vals[0] = <i32 as Into<T>>::into(1) / self.vals[0],
+            1 => self.vals[0] = <f64 as Into<T>>::into(1.0) / self.vals[0],
             2 => self.try_inplace_invert_2()?,
             3 => self.try_inplace_invert_3()?,
             4 => self.try_inplace_invert_4()?,
