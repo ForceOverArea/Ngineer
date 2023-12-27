@@ -32,7 +32,7 @@ where
     T: Add + AddAssign + Add<Output = T>
      + Copy
      + Div + Div<Output = T>
-     + From<i32>
+     + From<i32> + From<f64>
      + Mul + MulAssign + Mul<Output = T>
      + Neg + Neg<Output = T>
      + PartialEq
@@ -221,6 +221,33 @@ where
         for i in 0..self.cols
         {
             self[(row, i)] *= scalar;
+        }
+    }
+
+    /// Scales the elements in the matrix by a given scalar value.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let mut a: Matrix<i32> = Matrix::new_identity(3);
+    /// 
+    /// a.inplace_scale(4);
+    /// 
+    /// let a_vec: Vec<i32> = a.into();
+    /// 
+    /// assert_eq!(
+    ///     a_vec,
+    ///     vec![4, 0, 0,
+    ///          0, 4, 0,
+    ///          0, 0, 4]
+    /// );
+    /// ```
+    pub fn inplace_scale(&mut self, scalar: T) -> ()
+    {
+        for i in 0..self.rows
+        {
+            self.inplace_row_scale(i, scalar);
         }
     }
 

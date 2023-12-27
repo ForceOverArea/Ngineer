@@ -36,7 +36,7 @@ where
     T: Add + AddAssign + Add<Output = T>
      + Copy
      + Div + Div<Output = T>
-     + From<i32>
+     + From<i32> + From<f64>
      + Mul + MulAssign + Mul<Output = T>
      + Neg + Neg<Output = T>
      + PartialEq
@@ -77,7 +77,7 @@ where
     T: Add + AddAssign + Add<Output = T>
     + Copy
     + Div + Div<Output = T>
-    + From<i32>
+    + From<i32> + From<f64>
     + Mul + MulAssign + Mul<Output = T>
     + Neg + Neg<Output = T>
     + PartialEq
@@ -134,7 +134,7 @@ where
     T: Add + AddAssign + Add<Output = T>
     + Copy
     + Div + Div<Output = T>
-    + From<i32>
+    + From<i32> + From<f64>
     + Mul + MulAssign + Mul<Output = T>
     + Neg + Neg<Output = T>
     + PartialEq
@@ -182,7 +182,7 @@ where
     T: Add + AddAssign + Add<Output = T>
     + Copy
     + Div + Div<Output = T>
-    + From<i32>
+    + From<i32> + From<f64>
     + Mul + MulAssign + Mul<Output = T>
     + Neg + Neg<Output = T>
     + PartialEq
@@ -225,6 +225,95 @@ where
     {
         self * &Matrix { rows: rhs.len(), cols: 1, vals: rhs }
     }
+}
+
+impl <T> Mul<&Matrix<T>> for i32
+where
+    T: Add + AddAssign + Add<Output = T>
+    + Copy
+    + Div + Div<Output = T>
+    + From<i32> + From<f64>
+    + Mul + MulAssign + Mul<Output = T>
+    + Neg + Neg<Output = T>
+    + PartialEq
+    + Sub + Sub<Output = T>
+{
+    type Output = Matrix<T>;
+
+    fn mul(self, rhs: &Matrix<T>) -> Self::Output {
+        let mut result = rhs.clone();
+        result.inplace_scale(self.into());
+        result
+    }
+}
+
+impl <T> Mul<&Matrix<T>> for f64
+where
+    T: Add + AddAssign + Add<Output = T>
+    + Copy
+    + Div + Div<Output = T>
+    + From<i32> + From<f64>
+    + Mul + MulAssign + Mul<Output = T>
+    + Neg + Neg<Output = T>
+    + PartialEq
+    + Sub + Sub<Output = T>
+{
+    type Output = Matrix<T>;
+
+    fn mul(self, rhs: &Matrix<T>) -> Self::Output {
+        let mut result = rhs.clone();
+        result.inplace_scale(self.into());
+        result
+    }
+}
+
+impl <T> Mul<T> for &Matrix<T>
+where
+    T: Add + AddAssign + Add<Output = T>
+    + Copy
+    + Div + Div<Output = T>
+    + From<i32> + From<f64>
+    + Mul + MulAssign + Mul<Output = T>
+    + Neg + Neg<Output = T>
+    + PartialEq
+    + Sub + Sub<Output = T>
+{
+    type Output = Matrix<T>;
+
+    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
+    /// or `Matrix<T>`. For matrix-scalar multiplication, 
+    /// this scales the elements in the left operand. For 
+    /// matrix-vector multiplication, this operator treats
+    /// the left-hand operand as a row vector and the right-hand
+    /// operand as a column vector. For pure matrix multiplication,
+    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
+    /// of the operands. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the operands 
+    /// are not suitable for multiplication (i.e.
+    /// matrices/vectors are not the correct shape.)
+    /// 
+    /// # Example
+    /// Vector-scalar multiplication:
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::new_identity(3);
+    /// 
+    /// let b: Vec<i32> = (&a * 4).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
+    /// assert_eq!(
+    ///     b,
+    ///     vec![4, 0, 0,
+    ///          0, 4, 0,
+    ///          0, 0, 4]
+    /// );
+    /// ```
+    fn mul(self, rhs: T) -> Self::Output {
+        let mut result = self.clone();
+        result.inplace_scale(rhs);
+        result
+    }   
 }
 
 impl <T> Into<Vec<T>> for Matrix<T>
