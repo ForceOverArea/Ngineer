@@ -57,7 +57,7 @@ impl Display for NonSquareMatrixError
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
     {
-        write!(f, "matrix could not be inverted because it did not have the same number of rows and columns.")
+        write!(f, "could not perform operation because matrix did not have the same number of rows and columns.")
     }
 }
 impl Error for NonSquareMatrixError {}

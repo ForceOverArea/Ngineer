@@ -32,7 +32,7 @@ where
     T: Add + AddAssign + Add<Output = T>
      + Copy
      + Div + Div<Output = T>
-     + From<i32>
+     + From<i32> + From<f64>
      + Mul + MulAssign + Mul<Output = T>
      + Neg + Neg<Output = T>
      + PartialEq
@@ -61,7 +61,7 @@ where
             vals: Vec::with_capacity(rows * cols),
         };
         
-        for _ in 0..a.vals.capacity() 
+        for _ in 0..a.vals.capacity()
         {
             a.vals.push(0.into());
         }
@@ -408,6 +408,36 @@ where
         }
 
         b
+    }
+
+    /// Returns the (trace)[https://en.wikipedia.org/wiki/Trace_(linear_algebra)] of a 
+    /// `Matrix<T>` if it is square. If not, this method returns a 
+    /// `NonSquareMatrixError`.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a = Matrix::new_identity(4);
+    /// 
+    /// let trace: i32 = a.trace().unwrap();
+    /// 
+    /// assert_eq!(trace, 4);
+    /// ```
+    pub fn trace(&self) -> Result<T>
+    {
+        if self.rows != self.cols
+        {
+            return Err(NonSquareMatrixError.into())
+        }
+
+        let mut total: T = 0.into();
+        for i in 0..self.rows
+        {
+            total += self[(i, i)];
+        }
+
+        Ok(total)
     }
 
     /// Transposes this matrix, mirroring it about 
