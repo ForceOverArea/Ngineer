@@ -228,8 +228,10 @@ impl <T> Index<(usize, usize)> for Matrix<T>
     type Output = T;
 
     /// Allows for getting specific elements from 
-    /// a `Matrix<T>`. This automatically calculates the
-    /// 1-D `Vec` index needed to retrieve the desired 
+    /// a `Matrix<T>`. 
+    /// 
+    /// Under the hood, this is automatically calculating 
+    /// the 1-D `Vec` index needed to retrieve the desired 
     /// value from the user-facing 2-D `Matrix`.
     /// 
     /// # Example
@@ -237,11 +239,12 @@ impl <T> Index<(usize, usize)> for Matrix<T>
     /// use gmatlib::Matrix;
     /// 
     /// // gmatlib Matrix:
-    /// let a: Matrix<i32> = Matrix::new_identity(3);
+    /// let mut a: Matrix<i32> = Matrix::new_identity(3);
+    /// a[(1, 1)] = 2;
     /// 
     /// // Contiguous Vec:
     /// let b = vec![1, 0, 0,
-    ///              0, 1, 0,
+    ///              0, 2, 0,
     ///              0, 0, 1];
     /// 
     /// // both have the same actual structure
@@ -263,8 +266,10 @@ impl <T> Index<(usize, usize)> for Matrix<T>
 impl <T> IndexMut<(usize, usize)> for Matrix<T>
 {
     /// Allows for getting specific elements from 
-    /// a `Matrix<T>`. This automatically calculates the
-    /// 1-D `Vec` index needed to retrieve the desired 
+    /// a `Matrix<T>`. 
+    /// 
+    /// Under the hood, this is automatically calculating 
+    /// the 1-D `Vec` index needed to retrieve the desired 
     /// value from the user-facing 2-D `Matrix`.
     /// 
     /// # Example
