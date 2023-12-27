@@ -32,7 +32,7 @@ where
     T: Add + AddAssign + Add<Output = T>
      + Copy
      + Div + Div<Output = T>
-     + From<i32> + From<f64>
+     + From<i32>
      + Mul + MulAssign + Mul<Output = T>
      + Neg + Neg<Output = T>
      + PartialEq

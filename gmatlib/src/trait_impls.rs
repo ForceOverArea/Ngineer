@@ -36,7 +36,7 @@ where
     T: Add + AddAssign + Add<Output = T>
      + Copy
      + Div + Div<Output = T>
-     + From<i32> + From<f64>
+     + From<i32>
      + Mul + MulAssign + Mul<Output = T>
      + Neg + Neg<Output = T>
      + PartialEq
@@ -57,7 +57,7 @@ where
     /// let a: Matrix<i32> = Matrix::new_identity(3);
     /// let b: Matrix<i32> = Matrix::new_identity(3);
     /// 
-    /// let c: Vec<i32> = (a | b).into();
+    /// let c: Vec<i32> = (&a | &b).into();
     /// 
     /// assert_eq!(
     ///     c, 
@@ -66,7 +66,8 @@ where
     ///          0, 0, 1, 0, 0, 1]
     /// );
     /// ``` 
-    fn bitor(self, rhs: Self) -> Self::Output {
+    fn bitor(self, rhs: Self) -> Self::Output 
+    {
         self.augment_with(&rhs).unwrap()
     }
 }
@@ -76,7 +77,7 @@ where
     T: Add + AddAssign + Add<Output = T>
     + Copy
     + Div + Div<Output = T>
-    + From<i32> + From<f64>
+    + From<i32>
     + Mul + MulAssign + Mul<Output = T>
     + Neg + Neg<Output = T>
     + PartialEq
@@ -99,21 +100,26 @@ where
     /// matrices/vectors are not the correct shape.)
     /// 
     /// # Example
-    /// Matrix-vector multiplication:
+    /// Matrix-matrix multiplication:
     /// ```
     /// use gmatlib::Matrix;
     /// 
-    /// let a: Matrix<i32> = Matrix::new_identity(3);
-    /// let b: Vec<i32> = vec![1, 
-    ///                        2, 
-    ///                        3];
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(2,
+    ///     vec![ 7,  8,
+    ///           9, 10,
+    ///          11, 12]
+    /// ).unwrap();
     /// 
     /// let c: Vec<i32> = (a * b).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
     /// assert_eq!(
     ///     c,
-    ///     vec![1,
-    ///          2,
-    ///          3]
+    ///     vec![ 58,  64,
+    ///          139, 154]
     /// );
     /// ```
     #[inline]
@@ -128,7 +134,7 @@ where
     T: Add + AddAssign + Add<Output = T>
     + Copy
     + Div + Div<Output = T>
-    + From<i32> + From<f64>
+    + From<i32>
     + Mul + MulAssign + Mul<Output = T>
     + Neg + Neg<Output = T>
     + PartialEq
@@ -165,7 +171,8 @@ where
     /// );
     /// ```
     #[inline]
-    fn mul(self, rhs: Matrix<T>) -> Self::Output {
+    fn mul(self, rhs: Matrix<T>) -> Self::Output 
+    {
         Matrix { rows: 1, cols: self.len(), vals: self } * rhs
     }
 }
@@ -175,7 +182,7 @@ where
     T: Add + AddAssign + Add<Output = T>
     + Copy
     + Div + Div<Output = T>
-    + From<i32> + From<f64>
+    + From<i32>
     + Mul + MulAssign + Mul<Output = T>
     + Neg + Neg<Output = T>
     + PartialEq
@@ -202,7 +209,8 @@ where
     /// ```
     /// ```
     #[inline]
-    fn mul(self, rhs: Vec<T>) -> Self::Output {
+    fn mul(self, rhs: Vec<T>) -> Self::Output 
+    {
         self * Matrix { rows: rhs.len(), cols: 1, vals: rhs }
     }
 }
