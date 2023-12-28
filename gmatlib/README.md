@@ -8,23 +8,23 @@ The `Matrix<T>` type is simple, consisting of one contiguous piece of memory to 
 the number of allocations needed to construct the matrix.
 
 
-# Example: Rust
+# Example
 ```rust
 use gmatlib::Matrix;
 
 // Create a matrix with 3 columns
 let a: Matrix<f64> = Matrix::from_vec(3, vec![
-  1, 2, 3,
-  4, 5, 6,
-  7, 8, 9,
-]);
+    1.0, 2.0, 3.0,
+    4.0, 5.0, 6.0,
+    7.0, 8.0, 9.0,
+]).unwrap();
 
 // Matrices support appropriate binary operations
-let b = a * 3 * vec![0, 1, 0];
+let b = vec![0.0, 1.0, 0.0] * &(&a * 3.0);
 
 // ...and concise indexing 
 assert_eq!(
-  b[(1, 1)],
-  5
+    b[(0, 1)],
+    5.0
 );
 ```

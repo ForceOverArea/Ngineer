@@ -798,3 +798,25 @@ fn ensure_try_inplace_invert_n_works_as_expected()
 
     assert_eq!(a_vec, check);
 }
+
+#[test]
+fn ensure_that_readme_example_works() 
+{
+    //use gmatlib::Matrix;
+
+    // Create a matrix with 3 columns
+    let a: Matrix<f64> = Matrix::from_vec(3, vec![
+        1.0, 2.0, 3.0,
+        4.0, 5.0, 6.0,
+        7.0, 8.0, 9.0,
+    ]).unwrap();
+
+    // Matrices support appropriate binary operations
+    let b = vec![0.0, 1.0, 0.0] * &(&a * 3.0);
+
+    // ...and concise indexing 
+    assert_eq!(
+        b[(0, 1)],
+        5.0
+    );
+}
