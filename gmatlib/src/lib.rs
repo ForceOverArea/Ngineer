@@ -754,12 +754,10 @@ fn ensure_try_inplace_invert_4_works_as_expected()
 
     let a_vec: Vec<f64> = <Matrix<f64> as Into<Vec<f64>>>::into(a);
 
-    let check = vec![
-        0.25, 0.0, 0.0, 0.0,
-        0.0, -1.0, 1.0, 0.0,
-        0.0,  0.5, 0.0, 0.0,
-       -0.25, 0.0, 0.0, 1.0
-    ];
+    let check = vec![ 0.25, 0.0, 0.0, 0.0,
+                      0.0, -1.0, 1.0, 0.0,
+                      0.0,  0.5, 0.0, 0.0,
+                     -0.25, 0.0, 0.0, 1.0];
 
     assert_eq!(a_vec, check);
 }

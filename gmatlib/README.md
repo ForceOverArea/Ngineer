@@ -13,18 +13,19 @@ the number of allocations needed to construct the matrix.
 use gmatlib::Matrix;
 
 // Create a matrix with 3 columns
-let a: Matrix<f64> = Matrix::from_vec(3, vec![
-    1.0, 2.0, 3.0,
-    4.0, 5.0, 6.0,
-    7.0, 8.0, 9.0,
-]).unwrap();
+let a: Matrix<i32> = Matrix::from_vec(
+    3, 
+    vec![1, 2, 3,
+         4, 5, 6,
+         7, 8, 9]
+).unwrap();
 
 // Matrices support appropriate binary operations
-let b = vec![0.0, 1.0, 0.0] * &(&a * 3.0);
+let b = vec![0, 1, 0] * &(&a * 3);
 
 // ...and concise indexing 
 assert_eq!(
     b[(0, 1)],
-    5.0
+    15
 );
 ```
