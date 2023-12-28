@@ -1,10 +1,9 @@
 use std::fmt::Display;
-use std::ops::{Add, AddAssign, BitOr, Div, Index, IndexMut, Mul, MulAssign, Neg, Sub};
-use crate::Matrix;
+use std::ops::{BitOr, Index, IndexMut, Mul};
+use crate::{Matrix, Element};
 
 impl <T> Display for Matrix<T>
-where T:
-    Display
+where T: Element<T>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         
@@ -32,16 +31,7 @@ where T:
 }
 
 impl <T> BitOr for &Matrix<T>
-where
-    T: Add + AddAssign + Add<Output = T>
-     + Copy
-     + Div + Div<Output = T>
-     + From<f64>
-     + Into<f64>
-     + Mul + MulAssign + Mul<Output = T>
-     + Neg + Neg<Output = T>
-     + PartialEq
-     + Sub + Sub<Output = T>
+where T: Element<T>
 {
     type Output = Matrix<T>;
 
@@ -74,16 +64,7 @@ where
 }
 
 impl <T> Mul for &Matrix<T>
-where
-    T: Add + AddAssign + Add<Output = T>
-    + Copy
-    + Div + Div<Output = T>
-    + From<f64>
-    + Into<f64>
-    + Mul + MulAssign + Mul<Output = T>
-    + Neg + Neg<Output = T>
-    + PartialEq
-    + Sub + Sub<Output = T>
+where T: Element<T>
 {
     type Output = Matrix<T>;
 
@@ -132,16 +113,7 @@ where
 }
 
 impl <T> Mul<&Matrix<T>> for Vec<T>
-where
-    T: Add + AddAssign + Add<Output = T>
-    + Copy
-    + Div + Div<Output = T>
-    + From<f64>
-    + Into<f64>
-    + Mul + MulAssign + Mul<Output = T>
-    + Neg + Neg<Output = T>
-    + PartialEq
-    + Sub + Sub<Output = T>
+where T: Element<T>
 {
     type Output = Matrix<T>;
 
@@ -181,16 +153,7 @@ where
 }
 
 impl <T> Mul<Vec<T>> for &Matrix<T>
-where
-    T: Add + AddAssign + Add<Output = T>
-    + Copy
-    + Div + Div<Output = T>
-    + From<f64>
-    + Into<f64>
-    + Mul + MulAssign + Mul<Output = T>
-    + Neg + Neg<Output = T>
-    + PartialEq
-    + Sub + Sub<Output = T>
+where T: Element<T>
 {
     type Output = Matrix<T>;
 
@@ -231,117 +194,8 @@ where
     }
 }
 
-impl <T> Mul<&Matrix<T>> for i32
-where
-    T: Add + AddAssign + Add<Output = T>
-    + Copy
-    + Div + Div<Output = T>
-    + From<f64> + From<i32>
-    + Into<f64>
-    + Mul + MulAssign + Mul<Output = T>
-    + Neg + Neg<Output = T>
-    + PartialEq
-    + Sub + Sub<Output = T>
-{
-    type Output = Matrix<T>;
-
-    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
-    /// or `Matrix<T>`. For matrix-scalar multiplication, 
-    /// this scales the elements in the left operand. For 
-    /// matrix-vector multiplication, this operator treats
-    /// the left-hand operand as a row vector and the right-hand
-    /// operand as a column vector. For pure matrix multiplication,
-    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
-    /// of the operands. 
-    /// 
-    /// # Panics
-    /// This operation will panic if the operands 
-    /// are not suitable for multiplication (i.e.
-    /// matrices/vectors are not the correct shape.)
-    /// 
-    /// # Example
-    /// Vector-scalar multiplication:
-    /// ```
-    /// use gmatlib::Matrix;
-    /// 
-    /// let a: Matrix<i32> = Matrix::new_identity(3);
-    /// 
-    /// let b: Vec<i32> = (&a * 4).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
-    /// assert_eq!(
-    ///     b,
-    ///     vec![4, 0, 0,
-    ///          0, 4, 0,
-    ///          0, 0, 4]
-    /// );
-    /// ```
-    fn mul(self, rhs: &Matrix<T>) -> Self::Output {
-        let mut result = rhs.clone();
-        result.inplace_scale(self.into());
-        result
-    }
-}
-
-impl <T> Mul<&Matrix<T>> for f64
-where
-    T: Add + AddAssign + Add<Output = T>
-    + Copy
-    + Div + Div<Output = T>
-    + From<f64>
-    + Into<f64>
-    + Mul + MulAssign + Mul<Output = T>
-    + Neg + Neg<Output = T>
-    + PartialEq
-    + Sub + Sub<Output = T>
-{
-    type Output = Matrix<T>;
-
-    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
-    /// or `Matrix<T>`. For matrix-scalar multiplication, 
-    /// this scales the elements in the left operand. For 
-    /// matrix-vector multiplication, this operator treats
-    /// the left-hand operand as a row vector and the right-hand
-    /// operand as a column vector. For pure matrix multiplication,
-    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
-    /// of the operands. 
-    /// 
-    /// # Panics
-    /// This operation will panic if the operands 
-    /// are not suitable for multiplication (i.e.
-    /// matrices/vectors are not the correct shape.)
-    /// 
-    /// # Example
-    /// Vector-scalar multiplication:
-    /// ```
-    /// use gmatlib::Matrix;
-    /// 
-    /// let a: Matrix<i32> = Matrix::new_identity(3);
-    /// 
-    /// let b: Vec<i32> = (&a * 4).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
-    /// assert_eq!(
-    ///     b,
-    ///     vec![4, 0, 0,
-    ///          0, 4, 0,
-    ///          0, 0, 4]
-    /// );
-    /// ```
-    fn mul(self, rhs: &Matrix<T>) -> Self::Output {
-        let mut result = rhs.clone();
-        result.inplace_scale(self.into());
-        result
-    }
-}
-
 impl <T> Mul<T> for &Matrix<T>
-where
-    T: Add + AddAssign + Add<Output = T>
-    + Copy
-    + Div + Div<Output = T>
-    + From<f64>
-    + Into<f64>
-    + Mul + MulAssign + Mul<Output = T>
-    + Neg + Neg<Output = T>
-    + PartialEq
-    + Sub + Sub<Output = T>
+where T: Element<T>
 {
     type Output = Matrix<T>;
 
@@ -382,6 +236,7 @@ where
 }
 
 impl <T> Into<Vec<T>> for Matrix<T>
+where T: Element<T>
 {
     fn into(self) -> Vec<T> 
     {
@@ -390,6 +245,7 @@ impl <T> Into<Vec<T>> for Matrix<T>
 }
 
 impl <T> Index<(usize, usize)> for Matrix<T>
+where T: Element<T>
 {
     type Output = T;
 
@@ -430,6 +286,7 @@ impl <T> Index<(usize, usize)> for Matrix<T>
 }
 
 impl <T> IndexMut<(usize, usize)> for Matrix<T>
+where T: Element<T>
 {
     /// Allows for getting specific elements from 
     /// a `Matrix<T>`. 

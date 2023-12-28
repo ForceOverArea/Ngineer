@@ -3,14 +3,12 @@ use std::alloc::{alloc, dealloc, handle_alloc_error, Layout};
 use std::mem;
 use std::panic::catch_unwind;
 use std::ptr::{copy_nonoverlapping, null_mut};
-use crate::Matrix;
+use crate::{Matrix, Element};
 
 /// A more C-friendly format for `Matrix<T>` that must be 
 /// manually deallocated.
-#[derive(Clone)]
-#[derive(Debug)]
-#[derive(PartialEq)]
 pub struct CompactMatrix<T>
+where T: Element<T>
 {
     pub rows: usize,
     pub cols: usize,
@@ -18,6 +16,7 @@ pub struct CompactMatrix<T>
 }
 
 impl <T> CompactMatrix<T>
+where T: Element<T>
 {
     /// Converts a `CompactMatrix<T>` to a `Matrix<T>`, allowing
     /// one to operate on a pointer passed from 

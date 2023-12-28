@@ -8,20 +8,28 @@ mod trait_impls;
 /// other Rust projects.
 mod ffi;
 
-use std::convert::From;
-use std::fmt::Debug;
+use std::{fmt::Debug, fmt::Display};
 use std::mem;
-use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
+use std::ops::{AddAssign, MulAssign, Neg};
 use anyhow::{Error, Result};
 use error::*;
 use ffi::CompactMatrix;
+use num_traits::Num;
 pub use trait_impls::*;
 
+pub trait Element<T>: Num + Copy + Debug + Display + AddAssign + MulAssign + Neg<Output = T> {}
+
+impl Element<f32> for f32 {}
+impl Element<f64> for f64 {}
+impl Element<i8>  for i8  {}
+impl Element<i16> for i16 {}
+impl Element<i32> for i32 {}
+impl Element<i64> for i64 {}
+
 /// An MxN matrix stored as a single contiguous piece of memory.
-#[derive(Clone)]
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Matrix<T>
+where T: Element<T>
 {
     rows: usize,
     cols: usize,
@@ -29,18 +37,9 @@ pub struct Matrix<T>
 }
 
 impl <T> Matrix<T>
-where
-    T: Add + AddAssign + Add<Output = T>
-     + Copy
-     + Div + Div<Output = T>
-     + From<f64>
-     + Into<f64>
-     + Mul + MulAssign + Mul<Output = T>
-     + Neg + Neg<Output = T>
-     + PartialEq
-     + Sub + Sub<Output = T>
+where T: Element<T>
 {
-    /// Constructs a new `Matrix<T>` with all indices initialized to `0`.
+/// Constructs a new `Matrix<T>` with all indices initialized to `0`.
     /// 
     /// # Example 
     /// ```
@@ -65,7 +64,7 @@ where
         
         for _ in 0..a.vals.capacity()
         {
-            a.vals.push(0.0.into());
+            a.vals.push(T::zero());
         }
 
         a
@@ -91,7 +90,7 @@ where
         
         for i in 0..n
         {
-            a[(i, i)] = f64::from(1).into();
+            a[(i, i)] = T::one();
         } 
 
         a
@@ -460,7 +459,7 @@ where
             return Err(NonSquareMatrixError.into())
         }
 
-        let mut total: T = 0.0.into();
+        let mut total: T = T::zero();
         for i in 0..self.rows
         {
             total += self[(i, i)];
@@ -532,7 +531,7 @@ where
 
         let det = a11*a22 - a12*a21;
 
-        if det == 0.0.into()
+        if det == T::zero()
         {
             return Err(MatrixInversionError::DeterminantWasZero.into())
         }
@@ -561,7 +560,7 @@ where
         let det  = a11*a22*a33 + a21*a32*a13 + a31*a12*a23 
                  - a11*a32*a23 - a31*a22*a13 - a21*a12*a33;
 
-        if det == 0.0.into()
+        if det == T::zero()
         {
             return Err(MatrixInversionError::DeterminantWasZero.into())
         }
@@ -608,7 +607,7 @@ where
                    a13*a21*a34*a42 - a13*a22*a31*a44 - a13*a24*a32*a41 -
                    a14*a21*a32*a43 - a14*a22*a33*a41 - a14*a23*a31*a42;
 
-        if det == 0.0.into()
+        if det == T::zero()
         {
             return Err(MatrixInversionError::DeterminantWasZero.into());
         }
@@ -650,7 +649,7 @@ where
                 }
                 else
                 {
-                    if self[(j, j)] == 0.0.into()
+                    if self[(j, j)] == T::zero()
                     {
                         return Err(MatrixInversionError::ZeroDuringInversion.into())
                     }
@@ -663,7 +662,7 @@ where
 
         for i in 0..n
         {
-            let scalar: T = <f64 as Into<T>>::into(1.0) / self[(i, i)];
+            let scalar: T = T::one() / self[(i, i)];
             self.inplace_row_scale(i, scalar);
             inv.inplace_row_scale(i, scalar);
         }
@@ -699,13 +698,13 @@ where
             return Err(NonSquareMatrixError.into())
         }
 
-        if self.rows == 1 && self.vals[0] == 0.0.into()
+        if self.rows == 1 && self.vals[0] == T::zero()
         {
             return Err(Error::new(MatrixInversionError::SingularValueWasZero))
         }
 
         match self.rows {
-            1 => self.vals[0] = <f64 as Into<T>>::into(1.0) / self.vals[0],
+            1 => self.vals[0] = T::one() / self.vals[0],
             2 => self.try_inplace_invert_2()?,
             3 => self.try_inplace_invert_3()?,
             4 => self.try_inplace_invert_4()?,
@@ -770,11 +769,11 @@ fn ensure_try_inplace_invert_n_works_as_expected()
 {
     let mut a = Matrix::from_vec(
         5,
-        vec![ 3.0, 11.0,  2.0, 17.0, 22.0, 
-              4.0, 10.0, 12.0, 18.0, 23.0, 
-              8.0,  9.0, 14.0, 19.0, 24.0, 
-              5.0,  7.0, 15.0, 20.0, 25.0, 
-              6.0, 13.0, 16.0, 21.0, 26.0]
+        vec![ 3f64, 11f64,  2f64, 17f64, 22f64, 
+              4f64, 10f64, 12f64, 18f64, 23f64, 
+              8f64,  9f64, 14f64, 19f64, 24f64, 
+              5f64,  7f64, 15f64, 20f64, 25f64, 
+              6f64, 13f64, 16f64, 21f64, 26f64]
     ).unwrap();
 
     a.try_inplace_invert().unwrap();
@@ -805,18 +804,19 @@ fn ensure_that_readme_example_works()
     //use gmatlib::Matrix;
 
     // Create a matrix with 3 columns
-    let a: Matrix<f64> = Matrix::from_vec(3, vec![
-        1.0, 2.0, 3.0,
-        4.0, 5.0, 6.0,
-        7.0, 8.0, 9.0,
-    ]).unwrap();
+    let a: Matrix<i32> = Matrix::from_vec(
+        3, 
+        vec![1, 2, 3,
+             4, 5, 6,
+             7, 8, 9]
+    ).unwrap();
 
     // Matrices support appropriate binary operations
-    let b = vec![0.0, 1.0, 0.0] * &(&a * 3.0);
+    let b = vec![0, 1, 0] * &(&a * 3);
 
     // ...and concise indexing 
     assert_eq!(
         b[(0, 1)],
-        5.0
+        15
     );
 }
