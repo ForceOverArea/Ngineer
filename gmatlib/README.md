@@ -15,8 +15,8 @@ use gmatlib::{Matrix, row_vec};
 let a: Matrix<i32> = Matrix::from_vec(
     3, 
     vec![1, 2, 3,
-            4, 5, 6,
-            7, 8, 9]
+         4, 5, 6,
+         7, 8, 9]
 ).unwrap();
 
 // Matrices support appropriate binary operations
