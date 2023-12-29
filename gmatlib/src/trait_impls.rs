@@ -258,6 +258,44 @@ where T: Element<T>
 }
 
 // Matrix-scalar multiplication
+impl <T> Mul<T> for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Multiplies a matrix by another scalar: `T`,
+    /// or `Matrix<T>`. For matrix-scalar multiplication, 
+    /// this scales the elements in the left operand. For pure matrix multiplication,
+    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
+    /// of the operands. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the operands 
+    /// are not suitable for multiplication (i.e.
+    /// matrices are not the correct shape.)
+    /// 
+    /// # Example
+    /// Matrix-scalar multiplication:
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::new_identity(3);
+    /// let b: Vec<i32> = (a * 4).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
+    /// 
+    /// assert_eq!(
+    ///     b,
+    ///     vec![4, 0, 0,
+    ///          0, 4, 0,
+    ///          0, 0, 4]
+    /// );
+    /// ```
+    fn mul(self, rhs: T) -> Self::Output {
+        let mut result = self.clone();
+        result.inplace_scale(rhs);
+        result
+    }   
+}
+
 impl <T> Mul<T> for &Matrix<T>
 where T: Element<T>
 {
@@ -293,7 +331,7 @@ where T: Element<T>
         let mut result = self.clone();
         result.inplace_scale(rhs);
         result
-    }   
+    }
 }
 
 impl <T> Into<Vec<T>> for Matrix<T>

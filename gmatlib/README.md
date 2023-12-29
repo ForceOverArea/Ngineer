@@ -7,21 +7,20 @@ as well.
 The `Matrix<T>` type is simple, consisting of one contiguous piece of memory to reduce indirection and reduce
 the number of allocations needed to construct the matrix.
 
-
 # Example
 ```rust
-use gmatlib::Matrix;
+use gmatlib::{Matrix, row_vec};
 
 // Create a matrix with 3 columns
 let a: Matrix<i32> = Matrix::from_vec(
     3, 
     vec![1, 2, 3,
-         4, 5, 6,
-         7, 8, 9]
+            4, 5, 6,
+            7, 8, 9]
 ).unwrap();
 
 // Matrices support appropriate binary operations
-let b = vec![0, 1, 0] * &(&a * 3);
+let b = row_vec![0_i32, 1_i32, 0_i32] * (a * 3);
 
 // ...and concise indexing 
 assert_eq!(

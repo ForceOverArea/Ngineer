@@ -889,7 +889,7 @@ fn ensure_try_inplace_invert_n_works_as_expected()
 #[test]
 fn ensure_that_readme_example_works() 
 {
-    //use gmatlib::Matrix;
+    //use gmatlib::{Matrix, row_vec};
 
     // Create a matrix with 3 columns
     let a: Matrix<i32> = Matrix::from_vec(
@@ -900,7 +900,7 @@ fn ensure_that_readme_example_works()
     ).unwrap();
 
     // Matrices support appropriate binary operations
-    let b = &row_vec![0i32, 1i32, 0i32] * &(&a * 3);
+    let b = row_vec![0_i32, 1_i32, 0_i32] * (a * 3);
 
     // ...and concise indexing 
     assert_eq!(
