@@ -17,6 +17,7 @@ use ffi::CompactMatrix;
 use num_traits::Num;
 pub use trait_impls::*;
 
+/// A helper trait to constrain the type of the elements of a `Matrix<T>`.
 pub trait Element<T>: Num + Copy + Debug + Display + AddAssign + MulAssign + Neg<Output = T> {}
 
 impl Element<f32> for f32 {}
