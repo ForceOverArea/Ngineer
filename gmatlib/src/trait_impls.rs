@@ -63,7 +63,153 @@ where T: Element<T>
     }
 }
 
-impl <T> Mul for &Matrix<T>
+// Matrix multiplication (Impl's for all combinations of reference and owned values)
+impl <T> Mul for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
+    /// or `Matrix<T>`. For matrix-scalar multiplication, 
+    /// this scales the elements in the left operand. For 
+    /// matrix-vector multiplication, this operator treats
+    /// the left-hand operand as a row vector and the right-hand
+    /// operand as a column vector. For pure matrix multiplication,
+    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
+    /// of the operands. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the operands 
+    /// are not suitable for multiplication (i.e.
+    /// matrices/vectors are not the correct shape.)
+    /// 
+    /// # Example
+    /// Matrix-matrix multiplication:
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(2,
+    ///     vec![ 7,  8,
+    ///           9, 10,
+    ///          11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (a * b).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
+    /// assert_eq!(
+    ///     c,
+    ///     vec![ 58,  64,
+    ///          139, 154]
+    /// );
+    /// ```
+    #[inline]
+    fn mul(self, rhs: Self) -> Self::Output 
+    {
+        self.multiply_matrix(&rhs).unwrap()
+    }
+}
+
+impl <T> Mul<Matrix<T>> for &Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
+    /// or `Matrix<T>`. For matrix-scalar multiplication, 
+    /// this scales the elements in the left operand. For 
+    /// matrix-vector multiplication, this operator treats
+    /// the left-hand operand as a row vector and the right-hand
+    /// operand as a column vector. For pure matrix multiplication,
+    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
+    /// of the operands. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the operands 
+    /// are not suitable for multiplication (i.e.
+    /// matrices/vectors are not the correct shape.)
+    /// 
+    /// # Example
+    /// Matrix-matrix multiplication:
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(2,
+    ///     vec![ 7,  8,
+    ///           9, 10,
+    ///          11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (&a * b).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
+    /// assert_eq!(
+    ///     c,
+    ///     vec![ 58,  64,
+    ///          139, 154]
+    /// );
+    /// ```
+    fn mul(self, rhs: Matrix<T>) -> Self::Output 
+    {
+        self.multiply_matrix(&rhs).unwrap()
+    }
+}
+
+impl <T> Mul<&Matrix<T>> for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
+    /// or `Matrix<T>`. For matrix-scalar multiplication, 
+    /// this scales the elements in the left operand. For 
+    /// matrix-vector multiplication, this operator treats
+    /// the left-hand operand as a row vector and the right-hand
+    /// operand as a column vector. For pure matrix multiplication,
+    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
+    /// of the operands. 
+    /// 
+    /// # Panics
+    /// This operation will panic if the operands 
+    /// are not suitable for multiplication (i.e.
+    /// matrices/vectors are not the correct shape.)
+    /// 
+    /// # Example
+    /// Matrix-matrix multiplication:
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(2,
+    ///     vec![ 7,  8,
+    ///           9, 10,
+    ///          11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (a * &b).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
+    /// assert_eq!(
+    ///     c,
+    ///     vec![ 58,  64,
+    ///          139, 154]
+    /// );
+    /// ```
+    fn mul(self, rhs: &Matrix<T>) -> Self::Output 
+    {
+        self.multiply_matrix(rhs).unwrap()
+    }
+}
+
+impl <T> Mul<&Matrix<T>> for &Matrix<T>
 where T: Element<T>
 {
     type Output = Matrix<T>;
@@ -105,122 +251,37 @@ where T: Element<T>
     ///          139, 154]
     /// );
     /// ```
-    #[inline]
-    fn mul(self, rhs: Self) -> Self::Output 
-    {
-        self.multiply_matrix(&rhs).unwrap()
-    }
-}
-
-impl <T> Mul<&Matrix<T>> for Vec<T>
-where T: Element<T>
-{
-    type Output = Matrix<T>;
-
-    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
-    /// or `Matrix<T>`. For matrix-scalar multiplication, 
-    /// this scales the elements in the left operand. For 
-    /// matrix-vector multiplication, this operator treats
-    /// the left-hand operand as a row vector and the right-hand
-    /// operand as a column vector. For pure matrix multiplication,
-    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
-    /// of the operands. 
-    /// 
-    /// # Panics
-    /// This operation will panic if the operands 
-    /// are not suitable for multiplication (i.e.
-    /// matrices/vectors are not the correct shape.)
-    /// 
-    /// # Example
-    /// Vector-matrix multiplication:
-    /// ```
-    /// use gmatlib::Matrix;
-    /// 
-    /// let a: Vec<i32> = vec![1, 2, 3];
-    /// let b: Matrix<i32> = Matrix::new_identity(3);
-    /// 
-    /// let c: Vec<i32> = (a * &b).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
-    /// assert_eq!(
-    ///     c,
-    ///     vec![1, 2, 3]
-    /// );
-    /// ```
-    #[inline]
     fn mul(self, rhs: &Matrix<T>) -> Self::Output 
     {
-        &Matrix { rows: 1, cols: self.len(), vals: self } * rhs
+        self.multiply_matrix(rhs).unwrap()
     }
 }
 
-impl <T> Mul<Vec<T>> for &Matrix<T>
-where T: Element<T>
-{
-    type Output = Matrix<T>;
-
-    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
-    /// or `Matrix<T>`. For matrix-scalar multiplication, 
-    /// this scales the elements in the left operand. For 
-    /// matrix-vector multiplication, this operator treats
-    /// the left-hand operand as a row vector and the right-hand
-    /// operand as a column vector. For pure matrix multiplication,
-    /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
-    /// of the operands. 
-    /// 
-    /// # Panics
-    /// This operation will panic if the operands 
-    /// are not suitable for multiplication (i.e.
-    /// matrices/vectors are not the correct shape.)
-    /// 
-    /// # Example
-    /// Matrix-vector multiplication:
-    /// ```
-    /// use gmatlib::Matrix;
-    /// 
-    /// let a: Matrix<i32> = Matrix::new_identity(3);
-    /// let b: Vec<i32> = vec![1, 
-    ///                        2, 
-    ///                        3];
-    /// 
-    /// let c: Vec<i32> = (&a * b).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
-    /// assert_eq!(
-    ///     c,
-    ///     vec![1, 2, 3]
-    /// );
-    /// ```
-    #[inline]
-    fn mul(self, rhs: Vec<T>) -> Self::Output 
-    {
-        self * &Matrix { rows: rhs.len(), cols: 1, vals: rhs }
-    }
-}
-
+// Matrix-scalar multiplication
 impl <T> Mul<T> for &Matrix<T>
 where T: Element<T>
 {
     type Output = Matrix<T>;
 
-    /// Multiplies a matrix by another scalar: `T`, `Vec<T>`, 
+    /// Multiplies a matrix by another scalar: `T`,
     /// or `Matrix<T>`. For matrix-scalar multiplication, 
-    /// this scales the elements in the left operand. For 
-    /// matrix-vector multiplication, this operator treats
-    /// the left-hand operand as a row vector and the right-hand
-    /// operand as a column vector. For pure matrix multiplication,
+    /// this scales the elements in the left operand. For pure matrix multiplication,
     /// this returns the [matrix product](https://en.wikipedia.org/wiki/Matrix_multiplication)
     /// of the operands. 
     /// 
     /// # Panics
     /// This operation will panic if the operands 
     /// are not suitable for multiplication (i.e.
-    /// matrices/vectors are not the correct shape.)
+    /// matrices are not the correct shape.)
     /// 
     /// # Example
-    /// Vector-scalar multiplication:
+    /// Matrix-scalar multiplication:
     /// ```
     /// use gmatlib::Matrix;
     /// 
     /// let a: Matrix<i32> = Matrix::new_identity(3);
-    /// 
     /// let b: Vec<i32> = (&a * 4).into(); // `b` is a COLUMN vector here. It is the right-hand operand.
+    /// 
     /// assert_eq!(
     ///     b,
     ///     vec![4, 0, 0,
@@ -238,8 +299,28 @@ where T: Element<T>
 impl <T> Into<Vec<T>> for Matrix<T>
 where T: Element<T>
 {
-    fn into(self) -> Vec<T> 
-    {
+    /// Returns the contiguous contents of a `Matrix<T>`
+    /// as a `Vec<T>` with elements ordered as each row
+    /// joined end-to-end.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(
+    ///     3, 
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6, // Note: `5` is in index 4
+    ///          7, 8, 9]
+    /// ).unwrap();
+    /// 
+    /// let five = a[(1, 1)]; // center element
+    /// 
+    /// let a_vec: Vec<i32> = a.into();
+    /// 
+    /// assert_eq!(five, a_vec[4]);
+    /// ```
+    fn into(self) -> Vec<T> {
         self.vals
     }
 }

@@ -126,6 +126,54 @@ where T: Element<T>
         })
     }
 
+    /// Constructs a single-row `Matrix<T>` from
+    /// a given `Vec<T>`.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_row_vec(
+    ///     vec![1, 2, 3]
+    /// );
+    /// 
+    /// assert_eq!(a.get_rows(), 1);
+    /// ```
+    pub fn from_row_vec(vec: Vec<T>) -> Matrix<T>
+    {
+        Matrix
+        {
+            rows: 1,
+            cols: vec.len(),
+            vals: vec,
+        }
+    }
+
+    /// Constructs a single-column `Matrix<T>` from
+    /// a given `Vec<T>`.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_col_vec(
+    ///     vec![1, 
+    ///          2, 
+    ///          3]
+    /// );
+    /// 
+    /// assert_eq!(a.get_cols(), 1);
+    /// ```
+    pub fn from_col_vec(vec: Vec<T>) -> Matrix<T>
+    {
+        Matrix
+        {
+            rows: vec.len(),
+            cols: 1,
+            vals: vec,
+        }
+    }
+
     /// Converts this `Matrix<T>` to a `CompactMatrix<T>`,
     /// `mem::forget`ting the memory tied up in `self.vals` 
     /// in the process.
@@ -716,6 +764,48 @@ where T: Element<T>
 
 }
 
+/// Creates a new row vector `Matrix<T>`
+/// 
+/// # Example
+/// ```
+/// use gmatlib::{Matrix, row_vec};
+/// 
+/// let a: Matrix<i32> = row_vec![1, 2, 3];
+/// 
+/// assert_eq!(a.get_rows(), 1);
+/// assert_eq!(a.get_cols(), 3);
+/// ```
+#[macro_export]
+macro_rules! row_vec {
+    ($($e:expr),+ $(,)?) => {
+        Matrix::from_row_vec(
+            vec![$($e),+]
+        )
+    };
+}
+
+/// Creates a new column vector `Matrix<T>`.
+/// 
+/// # Example
+/// ```
+/// use gmatlib::{Matrix, col_vec};
+/// 
+/// let a: Matrix<i32> = col_vec![1,
+///                               2,
+///                               3];
+/// 
+/// assert_eq!(a.get_rows(), 3);
+/// assert_eq!(a.get_cols(), 1);
+/// ```
+#[macro_export]
+macro_rules! col_vec {
+    ($($e:expr),+ $(,)?) => {
+        Matrix::from_col_vec(
+            vec![$($e),+]
+        )
+    };
+}
+
 #[test]
 fn ensure_try_inplace_invert_3_works_as_expected()
 {
@@ -767,14 +857,14 @@ fn ensure_try_inplace_invert_n_works_as_expected()
 {
     let mut a = Matrix::from_vec(
         5,
-        vec![ 3f64, 11f64,  2f64, 17f64, 22f64, 
-              4f64, 10f64, 12f64, 18f64, 23f64, 
-              8f64,  9f64, 14f64, 19f64, 24f64, 
-              5f64,  7f64, 15f64, 20f64, 25f64, 
-              6f64, 13f64, 16f64, 21f64, 26f64]
+        vec![ 3.0, 11.0,  2.0, 17.0, 22.0, 
+              4.0, 10.0, 12.0, 18.0, 23.0, 
+              8.0,  9.0, 14.0, 19.0, 24.0, 
+              5.0,  7.0, 15.0, 20.0, 25.0, 
+              6.0, 13.0, 16.0, 21.0, 26.0]
     ).unwrap();
 
-    a.try_inplace_invert().unwrap();
+    a.try_inplace_invert().expect("Failed to invert matrix");
 
     let shift = 10.0f64.powi(4);
 
@@ -810,7 +900,7 @@ fn ensure_that_readme_example_works()
     ).unwrap();
 
     // Matrices support appropriate binary operations
-    let b = vec![0, 1, 0] * &(&a * 3);
+    let b = &row_vec![0i32, 1i32, 0i32] * &(&a * 3);
 
     // ...and concise indexing 
     assert_eq!(
