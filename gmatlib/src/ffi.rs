@@ -35,42 +35,63 @@ where T: Element<T>
 #[no_mangle]
 pub extern "C" fn new_double_matrix(rows: c_uint, cols: c_uint) -> *mut c_void
 {
-    let a = Matrix::new(rows as usize, cols as usize).to_compact_matrix();
-    let ptr: *mut CompactMatrix<c_double>;
-    let layout = Layout::new::<CompactMatrix<c_double>>();
-    unsafe
-    {
-        ptr = alloc(layout) as *mut CompactMatrix<c_double>;
-        if ptr.is_null() { 
-            handle_alloc_error(layout); 
+    let res = catch_unwind(|| {
+        let a = Matrix::new(rows as usize, cols as usize).to_compact_matrix();
+        let ptr: *mut CompactMatrix<c_double>;
+        let layout = Layout::new::<CompactMatrix<c_double>>();
+        unsafe
+        {
+            ptr = alloc(layout) as *mut CompactMatrix<c_double>;
+            if ptr.is_null() 
+            { 
+                handle_alloc_error(layout); 
+            }
+            copy_nonoverlapping(&a as *const CompactMatrix<c_double>, ptr, 1);
         }
-        copy_nonoverlapping(&a as *const CompactMatrix<c_double>, ptr, 1);
+        ptr as *mut c_void
+    });
+    
+    match res
+    {
+        Ok(ptr) => ptr,
+        Err(_)  => null_mut(),
     }
-    ptr as *mut c_void
 }
 
 #[no_mangle]
 pub extern "C" fn new_double_identity_matrix(n: c_uint) -> *mut c_void
 {
-    let a = Matrix::new_identity(n as usize).to_compact_matrix();
-    let ptr: *mut CompactMatrix<c_double>;
-    let layout = Layout::new::<CompactMatrix<c_double>>();
-    unsafe
-    {
-        ptr = alloc(layout) as *mut CompactMatrix<c_double>;
-        if ptr.is_null() {
-            handle_alloc_error(layout); 
+    let res = catch_unwind(|| {
+        let a = Matrix::new_identity(n as usize).to_compact_matrix();
+        let ptr: *mut CompactMatrix<c_double>;
+        let layout = Layout::new::<CompactMatrix<c_double>>();
+        unsafe
+        {
+            ptr = alloc(layout) as *mut CompactMatrix<c_double>;
+            if ptr.is_null() 
+            {
+                handle_alloc_error(layout); 
+            }
+            copy_nonoverlapping(&a as *const CompactMatrix<c_double>, ptr, 1);
         }
-        copy_nonoverlapping(&a as *const CompactMatrix<c_double>, ptr, 1);
+        ptr as *mut c_void
+    });
+    
+    match res
+    {
+        Ok(ptr) => ptr,
+        Err(_)  => null_mut(),
     }
-    ptr as *mut c_void
 }
 
 #[no_mangle]
 pub extern "C" fn inplace_row_swap(ptr: *mut c_void, r1: c_uint, r2: c_uint) -> c_uint
 {
     let res = catch_unwind(|| {
-        let mut a = unsafe { (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() };
+        let mut a = unsafe 
+        { 
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
+        };
         a.inplace_row_swap(r1 as usize, r2 as usize);
         
         mem::forget(a); // Prevent drop that would deallocate the matrix data
@@ -87,7 +108,8 @@ pub extern "C" fn inplace_row_swap(ptr: *mut c_void, r1: c_uint, r2: c_uint) -> 
 pub extern "C" fn inplace_row_scale(ptr: *mut c_void, row: c_uint, scalar: c_double) -> c_uint
 {
     let res = catch_unwind(|| {
-        let mut a = unsafe { 
+        let mut a = unsafe 
+        { 
             (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
         };
         a.inplace_row_scale(row as usize, scalar);
@@ -103,10 +125,31 @@ pub extern "C" fn inplace_row_scale(ptr: *mut c_void, row: c_uint, scalar: c_dou
 }
 
 #[no_mangle]
+pub extern "C" fn inplace_scale(ptr: *mut c_void, scalar: c_double) -> c_uint
+{
+    let res = catch_unwind(|| {
+        let mut a = unsafe 
+        {
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
+        };
+        a.inplace_scale(scalar);
+
+        mem::forget(a); // Prevent drop that would deallocate the matrix data
+    });
+
+    match res
+    {
+        Ok(_)  => 1,
+        Err(_) => 0,
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn inplace_row_add(ptr: *mut c_void, r1: c_uint, r2: c_uint) -> c_uint
 {
     let res = catch_unwind(|| {
-        let mut a = unsafe { 
+        let mut a = unsafe 
+        { 
             (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
         };
         a.inplace_row_add(r1 as usize, r2 as usize);
@@ -125,7 +168,8 @@ pub extern "C" fn inplace_row_add(ptr: *mut c_void, r1: c_uint, r2: c_uint) -> c
 pub extern "C" fn inplace_scaled_row_add(ptr: *mut c_void, r1: c_uint, r2: c_uint, scalar: c_double) -> c_uint
 {
     let res = catch_unwind(|| {
-        let mut a = unsafe { 
+        let mut a = unsafe 
+        { 
             (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
         };
         a.inplace_scaled_row_add(r1 as usize, r2 as usize, scalar);
@@ -143,38 +187,127 @@ pub extern "C" fn inplace_scaled_row_add(ptr: *mut c_void, r1: c_uint, r2: c_uin
 #[no_mangle]
 pub extern "C" fn augment_with(ptr_a: *mut c_void, ptr_b: *mut c_void) -> *mut c_void
 {
-    let (a, b) = unsafe {(
-        (*(ptr_a as *mut CompactMatrix<c_double>)).to_matrix(),
-        (*(ptr_b as *mut CompactMatrix<c_double>)).to_matrix()
-    )};
-
-    let ab = match a.augment_with(&b) {
-        Ok(x)  => x.to_compact_matrix(),
-        Err(_) => return null_mut(), // return early and indicate failure via NULL
-    };
-
-    mem::forget(a); // Prevent drop that would deallocate matrix data. We don't inform the
-    mem::forget(b); // caller that a or b will be deallocated, so we shouldn't do it here.
-
-    let ptr: *mut CompactMatrix<c_double>;
-    let layout = Layout::new::<CompactMatrix<c_double>>();
-
-    unsafe 
-    {
-        ptr = alloc(layout) as *mut CompactMatrix<c_double>;
-        if ptr.is_null() { 
-            handle_alloc_error(layout); 
-        }
-        copy_nonoverlapping(&ab as *const CompactMatrix<c_double>, ptr, 1);
-    }
+    let res = catch_unwind(|| {
+        let (a, b) = unsafe 
+        {(
+            (*(ptr_a as *mut CompactMatrix<c_double>)).to_matrix(),
+            (*(ptr_b as *mut CompactMatrix<c_double>)).to_matrix(),
+        )};
     
-    ptr as *mut c_void
+        let ab = match a.augment_with(&b) 
+        {
+            Ok(x)  => x.to_compact_matrix(),
+            Err(_) => return null_mut(), // return early and indicate failure via NULL
+        };
+    
+        mem::forget(a); // Prevent drop that would deallocate matrix data. We don't inform the
+        mem::forget(b); // caller that a or b will be deallocated, so we shouldn't do it here.
+    
+        let ptr: *mut CompactMatrix<c_double>;
+        let layout = Layout::new::<CompactMatrix<c_double>>();
+    
+        unsafe 
+        {
+            ptr = alloc(layout) as *mut CompactMatrix<c_double>;
+            if ptr.is_null() 
+            { 
+                handle_alloc_error(layout); 
+            }
+            copy_nonoverlapping(&ab as *const CompactMatrix<c_double>, ptr, 1);
+        }
+        
+        ptr as *mut c_void
+    });
+    
+    match res
+    {
+        Ok(ptr) => ptr,
+        Err(_)  => null_mut(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn subset(ptr: *mut c_void, r1: c_uint, c1: c_uint, r2: c_uint, c2: c_uint) -> *mut c_void
+{
+    let res = catch_unwind(|| {
+        let a = unsafe
+        { 
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
+        };
+        let b = a.subset(r1 as usize, c1 as usize, r2 as usize, c2 as usize).to_compact_matrix();
+
+        mem::forget(a); // Prevent drop that would deallocate the matrix data
+
+        b
+    });
+
+    match res
+    {
+        Ok(mut t) => (&mut t as *mut CompactMatrix<c_double>) as *mut c_void,
+        Err(_)    => null_mut(),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn trace(ptr: *mut c_void) -> c_double
+{
+    let res = catch_unwind(|| {
+        let a = unsafe 
+        { 
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
+        };
+        let trace = match a.trace()
+        {
+            Ok(t) => t,
+            Err(_) => c_double::MIN
+        };
+
+        mem::forget(a); // Prevent drop that would deallocate the matrix data
+
+        trace
+    });
+
+    match res 
+    {
+        Ok(t)  => t as c_double,
+        Err(_) => c_double::MIN,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn inplace_transpose(ptr: *mut c_void) -> c_uint
+{
+    let res = catch_unwind(|| {
+        let mut a = unsafe 
+        {
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
+        };
+
+        a.inplace_transpose();
+        let atrans = a.to_compact_matrix();
+
+        unsafe 
+        {
+            copy_nonoverlapping(
+                &atrans as *const CompactMatrix<c_double>, 
+                ptr as *mut CompactMatrix<c_double>, 
+                1,
+            );
+        }
+    });
+
+    match res
+    {
+        Ok(_)  => 1,
+        Err(_) => 0,
+    }
 }
 
 #[no_mangle]
 pub extern "C" fn try_inplace_invert(ptr: *mut c_void) -> c_uint
 {
-    let mut a = unsafe {
+    let mut a = unsafe 
+    {
         (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
     };
 
@@ -192,7 +325,8 @@ pub extern "C" fn try_inplace_invert(ptr: *mut c_void) -> c_uint
 pub extern "C" fn index_mut_double_matrix(ptr: *mut c_void, i: c_uint, j: c_uint, value: c_double) -> c_uint
 {
     let res = catch_unwind(|| {
-        let mut a = unsafe {
+        let mut a = unsafe 
+        {
             (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
         };
         a[(i as usize, j as usize)] = value;
@@ -211,7 +345,8 @@ pub extern "C" fn index_mut_double_matrix(ptr: *mut c_void, i: c_uint, j: c_uint
 pub extern "C" fn index_double_matrix(ptr: *mut c_void, i: c_uint, j: c_uint) -> c_double
 {
     let res = catch_unwind(|| {
-        let a = unsafe {
+        let a = unsafe 
+        {
             (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
         };
         let value = a[(i as usize, j as usize)];
@@ -224,8 +359,9 @@ pub extern "C" fn index_double_matrix(ptr: *mut c_void, i: c_uint, j: c_uint) ->
     match res
     {
         Ok(o)  => o,
-        Err(_) => {
-            f64::MIN
+        Err(_) =>
+        {
+            c_double::MIN
         }
     }
 }
@@ -233,11 +369,20 @@ pub extern "C" fn index_double_matrix(ptr: *mut c_void, i: c_uint, j: c_uint) ->
 #[no_mangle]
 pub extern "C" fn clone_double_matrix(ptr: *mut c_void) -> *mut c_void
 {
-    let a = unsafe {(*(ptr as *mut CompactMatrix<c_double>)).to_matrix()};
-    let b = a.clone();
-    mem::forget(a);
+    let oldptr = ptr as *const CompactMatrix<c_double>;
+    let newptr: *mut CompactMatrix<c_double>;
+    let layout = Layout::new::<CompactMatrix<c_double>>();
+    unsafe
+    {
+        newptr = alloc(layout) as *mut CompactMatrix<c_double>;
+        if newptr.is_null() 
+        { 
+            handle_alloc_error(layout); 
+        }
+        copy_nonoverlapping(oldptr, newptr, 1);
+    };
 
-    (&mut b.to_compact_matrix() as *mut CompactMatrix<c_double>) as *mut c_void
+    newptr as *mut c_void
 }
 
 #[no_mangle]

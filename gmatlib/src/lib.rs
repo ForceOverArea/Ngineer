@@ -40,7 +40,7 @@ where T: Element<T>
 impl <T> Matrix<T>
 where T: Element<T>
 {
-/// Constructs a new `Matrix<T>` with all indices initialized to `0`.
+    /// Constructs a new `Matrix<T>` with all indices initialized to `0`.
     /// 
     /// # Example 
     /// ```
@@ -487,7 +487,7 @@ where T: Element<T>
         b
     }
 
-    /// Returns the (trace)[https://en.wikipedia.org/wiki/Trace_(linear_algebra)] of a 
+    /// Returns the [trace](https://en.wikipedia.org/wiki/Trace_(linear_algebra)) of a 
     /// `Matrix<T>` if it is square. If not, this method returns a 
     /// `NonSquareMatrixError`.
     /// 
@@ -530,8 +530,13 @@ where T: Element<T>
     ///          3, 4,
     ///          5, 6]
     /// ).unwrap();
+    /// assert_eq!(a.get_rows(), 3);
+    /// assert_eq!(a.get_cols(), 2);
     /// 
+    /// // Swap rows and cols
     /// a.inplace_transpose();
+    /// assert_eq!(a.get_rows(), 2);
+    /// assert_eq!(a.get_cols(), 3);
     /// 
     /// let a_vec: Vec<i32> = a.into();
     /// 
@@ -566,8 +571,8 @@ where T: Element<T>
 
         // switch the number of rows and columns
         let storage = self.rows;
-        self.rows = self.cols;
-        self.cols = storage;
+        self.rows   = self.cols;
+        self.cols   = storage;
     }
 
     /// Attempts to invert a 2x2 `Matrix<T>` in-place.
@@ -908,4 +913,13 @@ fn ensure_that_readme_example_works()
         b[(0, 1)],
         15
     );
+}
+
+#[test]
+fn ensure_that_matrix_struct_implements_clone_and_partialeq_works_as_expected()
+{
+    let a: Matrix<i32> = Matrix::new_identity(3);
+    let b: Matrix<i32> = a.clone();
+
+    assert_eq!(a, b);
 }
