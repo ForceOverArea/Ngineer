@@ -1,9 +1,9 @@
-use std::ffi::{c_uint, c_void, c_double};
+use std::ffi::{c_double, c_uint, c_void};
 use std::alloc::{alloc, dealloc, handle_alloc_error, Layout};
 use std::mem;
 use std::panic::catch_unwind;
 use std::ptr::{copy_nonoverlapping, null_mut};
-use crate::{Matrix, Element};
+use crate::{Element, Matrix};
 
 /// A more C-friendly format for `Matrix<T>` that must be 
 /// manually deallocated.
@@ -43,8 +43,8 @@ pub extern "C" fn new_double_matrix(rows: c_uint, cols: c_uint) -> *mut c_void
         {
             ptr = alloc(layout) as *mut CompactMatrix<c_double>;
             if ptr.is_null() 
-            { 
-                handle_alloc_error(layout); 
+            {
+                handle_alloc_error(layout);
             }
             copy_nonoverlapping(&a as *const CompactMatrix<c_double>, ptr, 1);
         }
@@ -275,7 +275,7 @@ pub extern "C" fn trace(ptr: *mut c_void) -> c_double
 }
 
 #[no_mangle]
-pub extern "C" fn inplace_transpose(ptr: *mut c_void) -> c_uint
+pub extern "C" fn transpose(ptr: *mut c_void) -> *mut c_void
 {
     let res = catch_unwind(|| {
         let mut a = unsafe 
@@ -283,42 +283,43 @@ pub extern "C" fn inplace_transpose(ptr: *mut c_void) -> c_uint
             (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
         };
 
-        a.inplace_transpose();
-        let atrans = a.to_compact_matrix();
+        let b = a.transpose();
+        let btrans = b.to_compact_matrix();
 
-        unsafe 
-        {
-            copy_nonoverlapping(
-                &atrans as *const CompactMatrix<c_double>, 
-                ptr as *mut CompactMatrix<c_double>, 
-                1,
-            );
-        }
+        btrans
     });
 
     match res
     {
-        Ok(_)  => 1,
-        Err(_) => 0,
+        Ok(mut ptr) => (&mut ptr as *mut CompactMatrix<c_double>) as *mut c_void,
+        Err(_)      => null_mut(),
     }
 }
 
 #[no_mangle]
 pub extern "C" fn try_inplace_invert(ptr: *mut c_void) -> c_uint
 {
-    let mut a = unsafe 
+    let res = catch_unwind(|| {
+        let mut a = unsafe 
+        {
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
+        };
+    
+        let status = match a.try_inplace_invert()
+        {
+            Ok(_)  => 1,
+            Err(_) => 0,
+        };
+    
+        mem::forget(a);
+        status
+    });
+    
+    match res
     {
-        (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
-    };
-
-    let result = match a.try_inplace_invert()
-    {
-        Ok(_)  => 1,
-        Err(_) => 0,
-    };
-
-    mem::forget(a);
-    result
+        Ok(stat) => stat,
+        Err(_)   => 0,
+    }
 }
 
 #[no_mangle]
@@ -369,20 +370,34 @@ pub extern "C" fn index_double_matrix(ptr: *mut c_void, i: c_uint, j: c_uint) ->
 #[no_mangle]
 pub extern "C" fn clone_double_matrix(ptr: *mut c_void) -> *mut c_void
 {
-    let oldptr = ptr as *const CompactMatrix<c_double>;
-    let newptr: *mut CompactMatrix<c_double>;
-    let layout = Layout::new::<CompactMatrix<c_double>>();
-    unsafe
-    {
-        newptr = alloc(layout) as *mut CompactMatrix<c_double>;
-        if newptr.is_null() 
-        { 
-            handle_alloc_error(layout); 
-        }
-        copy_nonoverlapping(oldptr, newptr, 1);
-    };
+    let res = catch_unwind(|| {
+        let newptr: *mut CompactMatrix<c_double>;
+        let layout = Layout::new::<Matrix<c_double>>();
+        unsafe
+        {
+            // Get the actual matrix instance
+            let a = (*(ptr as *mut CompactMatrix<c_double>)).to_matrix();
 
-    newptr as *mut c_void
+            // Use clone to allocate a new instance and mem::forget it AND the old instance
+            let b = a.clone().to_compact_matrix();
+            mem::forget(a);
+
+            newptr = alloc(layout) as *mut CompactMatrix<c_double>;
+            if newptr.is_null() 
+            { 
+                handle_alloc_error(layout); 
+            }
+            copy_nonoverlapping(&b, newptr, 1);
+        };
+    
+        newptr as *mut c_void
+    });
+    
+    match res
+    {
+        Ok(ptr) => ptr,
+        Err(_)  => null_mut(),
+    }
 }
 
 #[no_mangle]

@@ -11,3 +11,7 @@ num-traits = "0.2.17"
 
 [lib]
 crate-type = ["rlib", "cdylib"]
+
+[[test]]
+name = "extra-tests"
+path = "tests/extra_tests.rs"
