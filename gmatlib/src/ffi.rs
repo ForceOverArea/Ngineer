@@ -185,6 +185,48 @@ pub extern "C" fn inplace_scaled_row_add(ptr: *mut c_void, r1: c_uint, r2: c_uin
 }
 
 #[no_mangle]
+pub extern "C" fn multiply_matrix(ptr_a: *mut c_void, ptr_b: *mut c_void) -> *mut c_void
+{
+    let res = catch_unwind(|| {
+        let (a, b) = unsafe 
+        {(
+            (*(ptr_a as *mut CompactMatrix<c_double>)).to_matrix(),
+            (*(ptr_b as *mut CompactMatrix<c_double>)).to_matrix(),
+        )};
+    
+        let ab = match a.multiply_matrix(&b) 
+        {
+            Ok(x)  => x.to_compact_matrix(),
+            Err(_) => return null_mut(), // return early and indicate failure via NULL
+        };
+    
+        mem::forget(a); // Prevent drop that would deallocate matrix data. We don't inform the
+        mem::forget(b); // caller that a or b will be deallocated, so we shouldn't do it here.
+    
+        let ptr: *mut CompactMatrix<c_double>;
+        let layout = Layout::new::<CompactMatrix<c_double>>();
+    
+        unsafe 
+        {
+            ptr = alloc(layout) as *mut CompactMatrix<c_double>;
+            if ptr.is_null() 
+            { 
+                handle_alloc_error(layout); 
+            }
+            copy_nonoverlapping(&ab as *const CompactMatrix<c_double>, ptr, 1);
+        }
+        
+        ptr as *mut c_void
+    });
+
+    match res
+    {
+        Ok(ptr) => ptr,
+        Err(_)  => null_mut(),
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn augment_with(ptr_a: *mut c_void, ptr_b: *mut c_void) -> *mut c_void
 {
     let res = catch_unwind(|| {
