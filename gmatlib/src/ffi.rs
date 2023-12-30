@@ -320,21 +320,34 @@ pub extern "C" fn trace(ptr: *mut c_void) -> c_double
 pub extern "C" fn transpose(ptr: *mut c_void) -> *mut c_void
 {
     let res = catch_unwind(|| {
-        let mut a = unsafe 
+        let a = unsafe
         {
-            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
         };
 
         let b = a.transpose();
-        let btrans = b.to_compact_matrix();
+        mem::forget(a);
 
-        btrans
+        let newptr: *mut CompactMatrix<c_double>;
+        let layout = Layout::new::<CompactMatrix<c_double>>();
+
+        unsafe
+        {
+            newptr = alloc(layout) as *mut CompactMatrix<c_double>;
+            if ptr.is_null() 
+            {
+                handle_alloc_error(layout);
+            }
+            copy_nonoverlapping(&b.to_compact_matrix() as *const CompactMatrix<c_double>, newptr, 1);
+        }
+
+        newptr
     });
 
     match res
     {
-        Ok(mut ptr) => (&mut ptr as *mut CompactMatrix<c_double>) as *mut c_void,
-        Err(_)      => null_mut(),
+        Ok(ptr) => ptr as *mut c_void,
+        Err(_)  => null_mut(),
     }
 }
 
@@ -415,18 +428,21 @@ pub extern "C" fn clone_double_matrix(ptr: *mut c_void) -> *mut c_void
     let res = catch_unwind(|| {
         let newptr: *mut CompactMatrix<c_double>;
         let layout = Layout::new::<Matrix<c_double>>();
-        unsafe
+        let a = unsafe
         {
             // Get the actual matrix instance
-            let a = (*(ptr as *mut CompactMatrix<c_double>)).to_matrix();
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix()
+        };
 
-            // Use clone to allocate a new instance and mem::forget it AND the old instance
-            let b = a.clone().to_compact_matrix();
-            mem::forget(a);
+        // Use clone to allocate a new instance and mem::forget it AND the old instance
+        let b = a.clone().to_compact_matrix();
+        mem::forget(a);
 
+        unsafe 
+        {
             newptr = alloc(layout) as *mut CompactMatrix<c_double>;
-            if newptr.is_null() 
-            { 
+            if newptr.is_null()
+            {
                 handle_alloc_error(layout); 
             }
             copy_nonoverlapping(&b, newptr, 1);
@@ -448,6 +464,11 @@ pub extern "C" fn free_double_matrix(ptr: *mut c_void) -> ()
     let layout = Layout::new::<CompactMatrix<c_double>>();
     unsafe 
     {
+        // Own the data in the pointer to drop the matrix data
+        (*(ptr as *mut CompactMatrix<c_double>)).to_matrix();
+        // Vec<T> w/ Matrix data goes out of scope...
+
         dealloc(ptr as *mut u8, layout);
+        // void* with metadata is manually dealloced here...
     }
 }

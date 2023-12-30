@@ -177,7 +177,15 @@ where T: Element<T>
 
     /// Converts this `Matrix<T>` to a `CompactMatrix<T>`,
     /// `mem::forget`ting the memory tied up in `self.vals` 
-    /// in the process.
+    /// in the process. NOTE: this method does not allocate 
+    /// heap memory for the returned value, it merely provides 
+    /// a struct to copy to a heap-allocated pointer.
+    /// 
+    /// Under the hood, this is needed to pass metadata regarding 
+    /// the shape of the matrix between caller and callee languages.
+    /// This makes it easier, and arguably safer, to convert a 
+    /// `*mut CompactMatrix<T>` back to a normally-owned `Matrix<T>`
+    /// on Rust's side of FFI.
     fn to_compact_matrix(mut self) -> CompactMatrix<T>
     {
         let compact = CompactMatrix
@@ -546,11 +554,11 @@ where T: Element<T>
     ///          2, 4, 6]
     /// );
     /// ```
-    pub fn transpose(&mut self) -> Matrix<T>
+    pub fn transpose(&self) -> Matrix<T>
     {
         let mut tspose = self.clone();
         
-        let rows = tspose.rows;
+        let rows    = tspose.rows;
         tspose.rows = tspose.cols;
         tspose.cols = rows;
 

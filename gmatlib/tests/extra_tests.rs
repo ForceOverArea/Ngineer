@@ -115,7 +115,7 @@ fn ensure_that_matrix_struct_implements_clone_and_partialeq_works_as_expected()
 #[test]
 fn ensure_inplace_transpose_method_works_on_case_not_in_doctest()
 {
-    let mut a: Matrix<i32> = Matrix::from_vec(
+    let a: Matrix<i32> = Matrix::from_vec(
         3, 
         vec![1, 2, 3, 
              4, 5, 6]
