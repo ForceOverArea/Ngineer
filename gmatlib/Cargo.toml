@@ -1,8 +1,10 @@
 [package]
 name = "gmatlib"
+description = "Simple linear algebra in Rust and beyond!"
 version = "0.0.0"
 edition = "2021"
 license = "MIT"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
