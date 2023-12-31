@@ -276,17 +276,31 @@ pub extern "C" fn subset(ptr: *mut c_void, r1: c_uint, c1: c_uint, r2: c_uint, c
         { 
             (*(ptr as *mut CompactMatrix<c_double>)).to_matrix() 
         };
-        let b = a.subset(r1 as usize, c1 as usize, r2 as usize, c2 as usize).to_compact_matrix();
 
+        let b = a.subset(r1 as usize, c1 as usize, r2 as usize, c2 as usize).to_compact_matrix();
+        
         mem::forget(a); // Prevent drop that would deallocate the matrix data
 
-        b
+        let newptr: *mut CompactMatrix<c_double>;
+        let layout = Layout::new::<CompactMatrix<c_double>>();
+
+        unsafe 
+        {
+            newptr = alloc(layout) as *mut CompactMatrix<c_double>;
+            if newptr.is_null()
+            {
+                handle_alloc_error(layout);
+            }
+            copy_nonoverlapping(&b, newptr, 1);
+        }
+
+        newptr as *mut c_void
     });
 
     match res
     {
-        Ok(mut t) => (&mut t as *mut CompactMatrix<c_double>) as *mut c_void,
-        Err(_)    => null_mut(),
+        Ok(ptr) => ptr,
+        Err(_)  => null_mut(),
     }
 }
 
