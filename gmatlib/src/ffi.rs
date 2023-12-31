@@ -19,7 +19,11 @@ impl <T> CompactMatrix<T>
 where T: Element<T>
 {
     /// Converts a `CompactMatrix<T>` to a `Matrix<T>`, allowing
-    /// one to operate on a pointer passed from 
+    /// one to operate on a pointer passed from another language.
+    /// 
+    /// NOTE: This does not own or deallocate the data in a 
+    /// `*mut CompactMatrix<T>`, it must be manually `dealloc`ed 
+    /// to prevent leaking memory.
     fn to_matrix(&self) -> Matrix<T>
     {
         let nvals = self.rows * self.cols;
@@ -209,11 +213,11 @@ pub extern "C" fn multiply_matrix(ptr_a: *mut c_void, ptr_b: *mut c_void) -> *mu
         unsafe 
         {
             ptr = alloc(layout) as *mut CompactMatrix<c_double>;
-            if ptr.is_null() 
+            if ptr.is_null()
             { 
-                handle_alloc_error(layout); 
+                handle_alloc_error(layout);
             }
-            copy_nonoverlapping(&ab as *const CompactMatrix<c_double>, ptr, 1);
+            copy_nonoverlapping(&ab, ptr, 1);
         }
         
         ptr as *mut c_void
@@ -475,14 +479,18 @@ pub extern "C" fn clone_double_matrix(ptr: *mut c_void) -> *mut c_void
 #[no_mangle]
 pub extern "C" fn free_double_matrix(ptr: *mut c_void) -> ()
 {
-    let layout = Layout::new::<CompactMatrix<c_double>>();
-    unsafe 
-    {
-        // Own the data in the pointer to drop the matrix data
-        (*(ptr as *mut CompactMatrix<c_double>)).to_matrix();
-        // Vec<T> w/ Matrix data goes out of scope...
-
-        dealloc(ptr as *mut u8, layout);
-        // void* with metadata is manually dealloced here...
-    }
+    // Try to dealloc. if a panic occurs, abort and leak mem 
+    // to avoid UB in the name of Ferris.
+    let _ = catch_unwind(|| {
+        let layout = Layout::new::<CompactMatrix<c_double>>();
+        unsafe 
+        {
+            // Own the data in the pointer to drop the matrix data
+            (*(ptr as *mut CompactMatrix<c_double>)).to_matrix();
+            // Vec<T> w/ Matrix data goes out of scope...
+    
+            dealloc(ptr as *mut u8, layout);
+            // void* with metadata is manually dealloced here...
+        }
+    });
 }
