@@ -22,4 +22,4 @@ Initial release
 
 [0.0.2]: https://github.com/ForceOverArea/gmatlib/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/ForceOverArea/gmatlib/compare/v0.0.0...v0.0.1
-[0.0.0]: https://github.com/ForceOverArea/gmatlib/tag/v0.0.0
+[0.0.0]: https://github.com/ForceOverArea/gmatlib/releases/tag/v0.0.0
