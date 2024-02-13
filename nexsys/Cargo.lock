@@ -25,12 +25,12 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "geqslib"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dd1408c1a33b476892a0167de61f89ccdf1f216aedc0f57b7145ee878ef5adb"
+checksum = "4473cb99e36e9d33712f5e0dd55e2976776ea68fa26e2bab17a8e61f3e82934e"
 dependencies = [
  "anyhow",
- "gmatlib",
+ "gmatlib 0.0.1",
  "lazy_static",
  "regex",
 ]
@@ -40,6 +40,16 @@ name = "gmatlib"
 version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7816a2f64628ca2a17db6cd9389bceb0a0bee0df3c9723b9328b85b08e09ab91"
+dependencies = [
+ "anyhow",
+ "num-traits",
+]
+
+[[package]]
+name = "gmatlib"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30d2beac62291f4c19f10367f925165cafe841bdd95840e86d90357f3fb2f762"
 dependencies = [
  "anyhow",
  "num-traits",
@@ -69,7 +79,7 @@ version = "1.0.0"
 dependencies = [
  "anyhow",
  "geqslib",
- "gmatlib",
+ "gmatlib 0.0.3",
  "lazy_static",
  "regex",
  "serde_json",

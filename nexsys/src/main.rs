@@ -30,8 +30,8 @@ OPTIONS:
         }
     };
 
-    let mut margin = 0.0;
-    let mut limit = 1; 
+    let mut margin = 0.0001;
+    let mut limit = 100; 
     let mut output_file = false; // todo: make this produce different file types
 
     for i in 0..args.len() {

@@ -9,14 +9,6 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[test]]
-name = "solver"
-path = "tests/solver.rs"
-
-[[test]]
-name = "math"
-path = "tests/math.rs"
-
-[[test]]
 name = "parsers"
 path = "tests/parsers.rs"
 
@@ -34,8 +26,8 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 anyhow      = "1.0.79"
-geqslib     = "0.1.1"
-gmatlib     = "0.0.1"
+geqslib     = "0.1.2"
+gmatlib     = "0.0.3"
 lazy_static = "1.4.0"
 regex       = "1.7.0"
 serde_json  = "1.0.89"

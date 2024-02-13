@@ -35,8 +35,8 @@ pub fn guess_values(text: &str) -> (String, HashMap<String, f64>)
     {
         res.0 = res.0.replace(g.get(0).unwrap().as_str(), "");
         res.1.insert(
-            g.get(1).unwrap().as_str().to_owned(), 
-            g.get(2).unwrap().as_str().parse()
+            g.get(2).unwrap().as_str().to_owned(), 
+            g.get(1).unwrap().as_str().parse()
                 .expect("failed to parse number in guess declaration")
         );
     }

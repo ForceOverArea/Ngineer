@@ -8,12 +8,13 @@ pub mod errors;
 use std::collections::HashMap;
 
 use geqslib::shunting::new_context;
-pub use geqslib::*;
-pub use gmatlib::*;
+pub use geqslib;
+use geqslib::solve_equation_with_context;
+pub use gmatlib;
 use parsing::compile;
 
-use crate::shunting::{ContextHashMap, ContextLike};
-use crate::system::{ConstrainResult, get_equation_unknowns, SystemBuilder};
+use crate::geqslib::shunting::{ContextHashMap, ContextLike};
+use crate::geqslib::system::{ConstrainResult, get_equation_unknowns, SystemBuilder};
 
 /// Solves a single equation for a single unknown value, returning a `bool` indicating if the solution attempt was successful 
 fn try_solve_single_unknown_eqn(eqn_pool: &mut Vec<String>, ctx: &mut ContextHashMap, declared: &mut HashMap<String, [f64; 3]>, log_step: &mut String, margin: f64, limit: usize) -> anyhow::Result<bool>
