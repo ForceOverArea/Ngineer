@@ -6,7 +6,7 @@ mod trait_impls;
 /// Contains `extern "C"` function definitions for linking this library
 /// against projects in different languages. Not intended for use in 
 /// other Rust projects.
-mod ffi;
+pub mod ffi;
 
 use std::{fmt::Debug, fmt::Display};
 use std::mem;
