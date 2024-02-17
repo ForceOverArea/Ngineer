@@ -1,6 +1,5 @@
 use std::{env, process};
 use std::fs::{read_to_string, write};
-use geqslib::shunting::Token;
 use nexsys::{solve_with_preprocessors, parsing::{conditionals, conversions, consts}};
 
 fn main() {
@@ -86,23 +85,9 @@ OPTIONS:
     let output = format!(
         "[->] Nexsys - {} results:\n\nSolution:\n+=======+\n{}\nProcedure:\n+========+\n{}\n",
         &args[1],
-        soln.into_iter().map(|i| {
-            if let Token::Var(v) = i.1
-            {
-                format!("{} = {}\n", i.0, f64::from(*v.borrow()))
-            }
-            else 
-            {
-                if let Token::Num(n) = i.1
-                {
-                    if i.0 != "pi" && i.0 != "e"
-                    {
-                        return format!("{} = {}\n", i.0, n);
-                    }
-                }
-                String::default()
-            }
-        }).collect::<String>(),
+        soln.into_iter()
+            .map(|(name, val)| format!("{} = {}\n", name, val))
+            .collect::<String>(),
         log.join("\n")
     );
 
