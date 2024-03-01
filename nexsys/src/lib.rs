@@ -54,7 +54,7 @@ fn try_solve_subsystem_of_equations(eqn_pool: &mut Vec<String>, ctx: &mut Contex
     for (i, equation) in eqn_pool.iter().enumerate()
     {
         let mut builder = SystemBuilder::new(equation, ctx.clone())?;
-        let mut eqn_strings = vec![];
+        let mut eqn_strings = vec![equation.to_owned()];
 
         for (j, equation) in eqn_pool.iter().enumerate()
         {
@@ -65,20 +65,20 @@ fn try_solve_subsystem_of_equations(eqn_pool: &mut Vec<String>, ctx: &mut Contex
                 continue;
             }
 
-            println!("Constraint status: {}", builder.is_fully_constrained());
+            // println!("Constraint status: {}", builder.is_fully_constrained());
 
             match builder.try_constrain_with(equation)?
             {
                 ConstrainResult::WillConstrain => {
                     eqn_strings.push(equation.to_owned());
-                    println!("constrained with: {}", equation);
+                    // println!("constrained with: {}", equation);
                 },
                 ConstrainResult::WillOverConstrain => break,
                 _ => {}
             }
         }
             
-        *log_step = format!("{:#?}", eqn_strings.join("\n"));
+        *log_step = format!("{:#?}", eqn_strings);
 
         // Solve the found constrained system:
         if let Some(mut system) = builder.build_system()
@@ -102,7 +102,7 @@ fn try_solve_subsystem_of_equations(eqn_pool: &mut Vec<String>, ctx: &mut Contex
             eqn_pool.clear();
             eqn_pool.extend(remaining_eqns);
 
-            println!("{:#?}", eqn_pool);
+            // println!("{:#?}", eqn_pool);
 
             return Ok(true);
         }
@@ -136,7 +136,7 @@ pub fn basic_solve(system: &str, ctx: &mut ContextHashMap, declared: &mut HashMa
         }
 
         // Dig in and solve a more expensive subsystem:
-        else if try_solve_subsystem_of_equations(&mut eqn_pool, ctx, declared, &mut log_step, margin, limit)?
+        if try_solve_subsystem_of_equations(&mut eqn_pool, ctx, declared, &mut log_step, margin, limit)?
         {
             log.push(log_step);
             continue;

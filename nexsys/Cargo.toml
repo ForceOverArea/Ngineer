@@ -13,8 +13,6 @@ name = "parsers"
 path = "tests/parsers.rs"
 
 [features]
-c_ffi = []
-default = ["c_ffi"]
 
 [[bin]]
 name = "nxc"
