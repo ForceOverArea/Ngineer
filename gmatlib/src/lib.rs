@@ -9,7 +9,6 @@ mod trait_impls;
 pub mod ffi;
 
 use std::{fmt::Debug, fmt::Display};
-use std::mem;
 use std::ops::{AddAssign, MulAssign, Neg};
 use anyhow::{Error, Result};
 use error::*;

@@ -1,8 +1,7 @@
 use std::ffi::{c_double, c_uint, c_void};
-use std::alloc::{alloc, dealloc, handle_alloc_error, Layout};
 use std::mem;
 use std::panic::catch_unwind;
-use std::ptr::{copy_nonoverlapping, null_mut};
+use std::ptr::null_mut;
 use crate::Matrix;
 
 #[no_mangle]
@@ -323,6 +322,6 @@ pub extern "C" fn free_double_matrix(ptr: *mut c_void) -> ()
     // Try to dealloc. if a panic occurs, abort and leak mem 
     // to avoid UB in the name of Ferris.
     let _ = catch_unwind(|| {
-        let drop_this = unsafe { Box::from_raw(ptr as *mut Matrix<c_double>) };
+        let _drop_this = unsafe { Box::from_raw(ptr as *mut Matrix<c_double>) };
     });
 }
