@@ -1,5 +1,6 @@
 use std::fmt::Display;
-use std::ops::{BitOr, Index, IndexMut, Mul};
+use std::iter::zip;
+use std::ops::{Add, BitOr, Index, IndexMut, Mul};
 use crate::{Matrix, Element};
 
 impl <T> Display for Matrix<T>
@@ -60,6 +61,53 @@ where T: Element<T>
     fn bitor(self, rhs: Self) -> Self::Output 
     {
         self.augment_with(&rhs).unwrap()
+    }
+}
+
+// Matrix addition
+impl <T> Add for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+    fn add(self, rhs: Self) -> Self::Output 
+    {
+        &self + &rhs
+    }
+}
+
+impl <T> Add<Matrix<T>> for &Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+    fn add(self, rhs: Matrix<T>) -> Self::Output 
+    {
+        self + &rhs
+    }
+}
+
+impl <T> Add<&Matrix<T>> for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+    fn add(self, rhs: &Matrix<T>) -> Self::Output 
+    {
+        &self + rhs
+    }
+}
+
+impl <T> Add<&Matrix<T>> for &Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    fn add(self, rhs: &Matrix<T>) -> Self::Output 
+    {
+        let mut ret_val = Matrix::new(self.rows, self.cols);
+        ret_val.vals = Vec::from_iter(
+            zip(&self.vals, &rhs.vals)
+                .map(|(l, r)| *l + *r)
+        );
+        ret_val
     }
 }
 
