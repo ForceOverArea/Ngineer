@@ -13,7 +13,6 @@ use std::mem;
 use std::ops::{AddAssign, MulAssign, Neg};
 use anyhow::{Error, Result};
 use error::*;
-use ffi::CompactMatrix;
 use num_traits::Num;
 pub use trait_impls::*;
 
@@ -173,35 +172,6 @@ where T: Element<T>
             cols: 1,
             vals: vec,
         }
-    }
-
-    /// Converts this `Matrix<T>` to a `CompactMatrix<T>`,
-    /// `mem::forget`ting the memory tied up in `self.vals` 
-    /// in the process. NOTE: this method does not allocate 
-    /// heap memory for the returned value, it merely provides 
-    /// a struct to copy to a heap-allocated pointer.
-    /// 
-    /// Under the hood, this is needed to pass metadata regarding 
-    /// the shape of the matrix between caller and callee languages.
-    /// This makes it easier, and arguably safer, to convert a 
-    /// `*mut CompactMatrix<T>` back to a normally-owned `Matrix<T>`
-    /// on Rust's side of FFI.
-    fn to_compact_matrix(mut self) -> CompactMatrix<T>
-    {
-        let compact = CompactMatrix
-        {
-            rows: self.rows,
-            cols: self.cols,
-            vals: self.vals.as_mut_ptr(),
-        };
-
-        // Intentionally leak the `Vec<T>` in `self`.
-        // The user will reclaim the EXACT memory leaked
-        // here when the reconstruct the Matrix<T> from
-        // a CompactMatrix<T> coming in from FFI.
-        mem::forget(self);
-
-        compact
     }
 
     /// Returns the number of rows in the `Matrix<T>`
