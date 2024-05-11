@@ -1,5 +1,6 @@
 use std::fmt::Display;
-use std::ops::{BitOr, Index, IndexMut, Mul};
+use std::iter::zip;
+use std::ops::{Add, BitOr, Index, IndexMut, Mul};
 use crate::{Matrix, Element};
 
 impl <T> Display for Matrix<T>
@@ -60,6 +61,174 @@ where T: Element<T>
     fn bitor(self, rhs: Self) -> Self::Output 
     {
         self.augment_with(&rhs).unwrap()
+    }
+}
+
+// Matrix addition (Impl's for all combinations of reference and owned values)
+impl <T> Add for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Performs element-wise addition between all
+    /// elements of two matrices. 
+    /// 
+    /// # Panics
+    /// This method will panic if the matrices being
+    /// added are of different sizes.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![ 7,  8,  9, 
+    ///          10, 11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (a + b).into();
+    /// assert_eq!(
+    ///     c,
+    ///     vec![ 8, 10, 12,
+    ///          14, 16, 18]
+    /// );
+    /// ```
+    fn add(self, rhs: Self) -> Self::Output 
+    {
+        &self + &rhs
+    }
+}
+
+impl <T> Add<Matrix<T>> for &Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Performs element-wise addition between all
+    /// elements of two matrices. 
+    /// 
+    /// # Panics
+    /// This method will panic if the matrices being
+    /// added are of different sizes.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![ 7,  8,  9, 
+    ///          10, 11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (&a + b).into();
+    /// assert_eq!(
+    ///     c,
+    ///     vec![ 8, 10, 12,
+    ///          14, 16, 18]
+    /// );
+    /// ```
+    fn add(self, rhs: Matrix<T>) -> Self::Output 
+    {
+        self + &rhs
+    }
+}
+
+impl <T> Add<&Matrix<T>> for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Performs element-wise addition between all
+    /// elements of two matrices. 
+    /// 
+    /// # Panics
+    /// This method will panic if the matrices being
+    /// added are of different sizes.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![ 7,  8,  9, 
+    ///          10, 11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (a + &b).into();
+    /// assert_eq!(
+    ///     c,
+    ///     vec![ 8, 10, 12,
+    ///          14, 16, 18]
+    /// );
+    /// ```
+    fn add(self, rhs: &Matrix<T>) -> Self::Output 
+    {
+        &self + rhs
+    }
+}
+
+impl <T> Add<&Matrix<T>> for &Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Performs element-wise addition between all
+    /// elements of two matrices. 
+    /// 
+    /// # Panics
+    /// This method will panic if the matrices being
+    /// added are of different sizes.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![ 7,  8,  9, 
+    ///          10, 11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (&a + &b).into();
+    /// assert_eq!(
+    ///     c,
+    ///     vec![ 8, 10, 12,
+    ///          14, 16, 18]
+    /// );
+    /// ```
+    fn add(self, rhs: &Matrix<T>) -> Self::Output 
+    {
+        if self.rows != rhs.rows || 
+           self.cols != rhs.cols
+        {
+            panic!("cannot add elements of matrices with different sizes")
+        }
+
+        let mut ret_val = Matrix::new(self.rows, self.cols);
+        ret_val.vals = Vec::from_iter(
+            zip(&self.vals, &rhs.vals)
+                .map(|(l, r)| *l + *r)
+        );
+        ret_val
     }
 }
 
