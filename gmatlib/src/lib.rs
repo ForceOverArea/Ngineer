@@ -8,6 +8,7 @@ mod trait_impls;
 /// other Rust projects.
 pub mod ffi;
 
+use core::slice;
 use std::{fmt::Debug, fmt::Display};
 use std::ops::{AddAssign, MulAssign, Neg};
 use std::mem::swap;
@@ -108,7 +109,7 @@ where T: Element<T>
     ///     2,
     ///     vec![1, 0,
     ///          0, 1]
-    /// ).unwrap();
+    /// ).expect("Failed to create matrix");
     /// 
     /// assert_eq!(a, Matrix::new_identity(2));
     /// ```
@@ -202,6 +203,40 @@ where T: Element<T>
     pub fn get_cols(&self) -> usize
     {
         self.cols
+    }
+
+    /// Returns an iterator over the elements of the matrix.
+    /// The order of the elements is left-to-right, 
+    /// top-to-bottom.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(
+    ///     2,
+    ///     vec![1, 2,
+    ///          3, 4]
+    /// ).expect("Failed to create matrix");
+    /// 
+    /// let check = &[1, 2, 3, 4];
+    /// 
+    /// for (idx, elem) in a.iter().enumerate()
+    /// {
+    ///     assert_eq!(&check[idx], elem)
+    /// }
+    /// ```
+    pub fn iter<'a>(&'a self) -> slice::Iter<'a, T>
+    {
+        self.vals.iter()
+    }
+
+    pub fn ligma(&self)
+    {
+        for (_i, _x) in self.iter().enumerate()
+        {
+
+        }
     }
 
     /// Swaps the locations of two rows in the matrix.
