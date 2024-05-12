@@ -226,7 +226,7 @@ where T: Element<T>
     ///     assert_eq!(&check[idx], elem)
     /// }
     /// ```
-    pub fn iter<'a>(&'a self) -> slice::Iter<'a, T>
+    pub fn iter(&self) -> slice::Iter<'_, T>
     {
         self.vals.iter()
     }
