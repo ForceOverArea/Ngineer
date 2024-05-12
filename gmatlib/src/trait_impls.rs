@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::iter::zip;
-use std::ops::{Add, BitOr, Index, IndexMut, Mul, Sub};
+use std::ops::{Add, AddAssign, BitOr, Index, IndexMut, Mul, Sub, SubAssign};
 use crate::{Matrix, Element};
 
 impl <T> Display for Matrix<T>
@@ -232,6 +232,24 @@ where T: Element<T>
     }
 }
 
+impl <T> AddAssign for Matrix<T>
+where T: Element<T>
+{
+    fn add_assign(&mut self, rhs: Self) 
+    {
+        if self.rows != rhs.rows || 
+           self.cols != rhs.cols
+        {
+            panic!("cannot add elements of matrices with different sizes")
+        }
+
+        for (i, elem) in rhs.iter().enumerate()
+        {
+            self.vals[i] += *elem;
+        }
+    }
+}
+
 // Matrix subtraction (Impl's for all combinations of reference and owned values)
 impl <T> Sub<Matrix<T>> for Matrix<T>
 where T: Element<T>
@@ -394,6 +412,24 @@ where T: Element<T>
                 .map(|(l, r)| *l - *r)
         );
         ret_val
+    }
+}
+
+impl <T> SubAssign for Matrix<T>
+where T: Element<T>
+{
+    fn sub_assign(&mut self, rhs: Self) 
+    {
+        if self.rows != rhs.rows || 
+           self.cols != rhs.cols
+        {
+            panic!("cannot subtract elements of matrices with different sizes")
+        }
+
+        for (i, elem) in rhs.iter().enumerate()
+        {
+            self.vals[i] -= *elem;
+        }
     }
 }
 
