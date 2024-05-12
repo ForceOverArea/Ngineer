@@ -231,14 +231,6 @@ where T: Element<T>
         self.vals.iter()
     }
 
-    pub fn ligma(&self)
-    {
-        for (_i, _x) in self.iter().enumerate()
-        {
-
-        }
-    }
-
     /// Swaps the locations of two rows in the matrix.
     /// 
     /// # Example
