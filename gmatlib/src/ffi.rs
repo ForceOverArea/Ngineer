@@ -231,7 +231,7 @@ pub extern "C" fn transpose(ptr: *mut c_void) -> *mut c_void
 
     match res
     {
-        Ok(ptr) => ptr as *mut c_void,
+        Ok(ptr) => ptr,
         Err(_)  => null_mut(),
     }
 }
@@ -251,11 +251,7 @@ pub extern "C" fn try_inplace_invert(ptr: *mut c_void) -> c_uint
         status
     });
     
-    match res
-    {
-        Ok(stat) => stat,
-        Err(_)   => 0,
-    }
+    res.unwrap_or(0)
 }
 
 #[no_mangle]
@@ -317,7 +313,7 @@ pub extern "C" fn clone_double_matrix(ptr: *mut c_void) -> *mut c_void
 }
 
 #[no_mangle]
-pub extern "C" fn free_double_matrix(ptr: *mut c_void) -> ()
+pub extern "C" fn free_double_matrix(ptr: *mut c_void)
 {
     // Try to dealloc. if a panic occurs, abort and leak mem 
     // to avoid UB in the name of Ferris.

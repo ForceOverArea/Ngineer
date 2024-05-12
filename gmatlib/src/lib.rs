@@ -10,6 +10,7 @@ pub mod ffi;
 
 use std::{fmt::Debug, fmt::Display};
 use std::ops::{AddAssign, MulAssign, Neg};
+use std::mem::swap;
 use anyhow::{Error, Result};
 use error::*;
 use num_traits::Num;
@@ -220,7 +221,7 @@ where T: Element<T>
     ///          0, 1, 0]
     /// );
     /// ```
-    pub fn inplace_row_swap(&mut self, r1: usize, r2: usize) -> ()
+    pub fn inplace_row_swap(&mut self, r1: usize, r2: usize)
     {
         let mut storage: T;
         for i in 0..self.cols
@@ -243,7 +244,7 @@ where T: Element<T>
     /// 
     /// assert_eq!(a[(1, 1)], 3);
     /// ```
-    pub fn inplace_row_scale(&mut self, row: usize, scalar: T) -> ()
+    pub fn inplace_row_scale(&mut self, row: usize, scalar: T)
     {
         for i in 0..self.cols
         {
@@ -270,7 +271,7 @@ where T: Element<T>
     ///          0, 0, 4]
     /// );
     /// ```
-    pub fn inplace_scale(&mut self, scalar: T) -> ()
+    pub fn inplace_scale(&mut self, scalar: T)
     {
         for i in 0..self.rows
         {
@@ -296,7 +297,7 @@ where T: Element<T>
     ///          0, 0, 1]
     /// );
     /// ```
-    pub fn inplace_row_add(&mut self, r1: usize, r2: usize) -> ()
+    pub fn inplace_row_add(&mut self, r1: usize, r2: usize)
     {
         for i in 0..self.cols
         {
@@ -324,7 +325,7 @@ where T: Element<T>
     ///          0, 0, 1]
     /// );
     /// ```
-    pub fn inplace_scaled_row_add(&mut self, r1: usize, r2: usize, scalar: T) -> ()
+    pub fn inplace_scaled_row_add(&mut self, r1: usize, r2: usize, scalar: T)
     {
         for i in 0..self.cols
         {
@@ -526,10 +527,7 @@ where T: Element<T>
     pub fn transpose(&self) -> Matrix<T>
     {
         let mut tspose = self.clone();
-        
-        let rows    = tspose.rows;
-        tspose.rows = tspose.cols;
-        tspose.cols = rows;
+        swap(&mut tspose.rows, &mut tspose.cols);
 
         for i in 0..self.rows
         {    

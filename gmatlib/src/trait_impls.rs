@@ -60,7 +60,7 @@ where T: Element<T>
     /// ``` 
     fn bitor(self, rhs: Self) -> Self::Output 
     {
-        self.augment_with(&rhs).unwrap()
+        self.augment_with(rhs).unwrap()
     }
 }
 
@@ -503,7 +503,7 @@ where T: Element<T>
     }
 }
 
-impl <T> Into<Vec<T>> for Matrix<T>
+impl <T> From<Matrix<T>> for Vec<T>
 where T: Element<T>
 {
     /// Returns the contiguous contents of a `Matrix<T>`
@@ -527,8 +527,8 @@ where T: Element<T>
     /// 
     /// assert_eq!(five, a_vec[4]);
     /// ```
-    fn into(self) -> Vec<T> {
-        self.vals
+    fn from(value: Matrix<T>) -> Self {
+        value.vals
     }
 }
 
