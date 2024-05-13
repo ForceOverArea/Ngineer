@@ -1,0 +1,31 @@
+[package]
+name = "nexsys"
+description = "Solve nonlinear systems of equations using Newton's method."
+version = "1.0.0" # Breaking change: Move to geqslib/gmatlib
+edition = "2021"
+license = "GPL-3.0-or-later"
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[test]]
+name = "parsers"
+path = "tests/parsers.rs"
+
+[features]
+
+[[bin]]
+name = "nxc"
+path = "src/main.rs"
+
+[lib]
+name = "nexsys"
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+anyhow      = "1.0.79"
+geqslib     = "0.1.3"
+gmatlib     = "0.0.3"
+lazy_static = "1.4.0"
+regex       = "1.7.0"
+serde_json  = "1.0.89"
