@@ -1,4 +1,4 @@
-use std::ptr::null;
+use std::ptr::null_mut;
 use std::{collections::HashMap, ffi::CStr, panic::catch_unwind};
 use std::ffi::{c_char, c_double, c_int, CString, c_uint, c_void};
 use geqslib::shunting::ContextHashMap;
@@ -44,7 +44,7 @@ pub unsafe extern "C" fn add_declared_variable(declared: *mut c_void, var: *cons
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn basic_solve(system: *const c_char, ctx: *mut c_void, declared: *mut c_void, margin: c_double, limit: c_uint) -> *const c_char
+pub unsafe extern "C" fn basic_solve(system: *const c_char, ctx: *mut c_void, declared: *mut c_void, margin: c_double, limit: c_uint) -> *mut c_char
 {
     let res = catch_unwind(|| {
         let rust_system = copy_to_owned_string!(system);
@@ -63,22 +63,22 @@ pub unsafe extern "C" fn basic_solve(system: *const c_char, ctx: *mut c_void, de
                 let steps_str = log.join("\n");
                 let soln_str = soln.iter()
                     .fold(String::new(), |mut acc, (x, y)| { 
-                        acc.push_str(&format!("{} {:#?}", x, y));
+                        acc.push_str(&format!("{}: {:#?}, ", x, y));
                         acc
                     });
-                CString::new(format!("{{ log: \"{:#?}\", \nsoln: \"{:#?}\" }}", steps_str, soln_str))
+                CString::new(format!("{{ log: {:#?}, \nsoln: {:#?} }}", steps_str, soln_str))
                     .expect("failed to create C-compatible solution error string!")
                     .into_raw()
             },
-            Err(_) => null() as *const c_char,
+            Err(_) => null_mut(),
         }
     });
     
-    res.unwrap_or(null() as *const c_char)
+    res.unwrap_or(null_mut())
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn solve_with_preprocessors(system: *const c_char, margin: c_double, limit: c_uint) -> *const c_char
+pub unsafe extern "C" fn solve_with_preprocessors(system: *const c_char, margin: c_double, limit: c_uint) -> *mut c_char
 {
     let res = catch_unwind(|| {
         let c_str = CStr::from_ptr(system);
@@ -99,15 +99,15 @@ pub unsafe extern "C" fn solve_with_preprocessors(system: *const c_char, margin:
                         acc.push_str(&format!("{} {:#?}", x, y));
                         acc
                     });
-                CString::new(format!("{{ log: \"{:#?}\", \nsoln: \"{:#?}\" }}", steps_str, soln_str))
+                CString::new(format!("{{ log: {:#?}, \nsoln: {:#?} }}", steps_str, soln_str))
                     .expect("failed to create C-compatible solution error string!")
                     .into_raw()
             },
-            Err(_) => null() as *const c_char,
+            Err(_) => null_mut(),
         }
     });
 
-    res.unwrap_or(null() as *const c_char)
+    res.unwrap_or(null_mut() as *mut c_char)
 }
 
 #[no_mangle]
