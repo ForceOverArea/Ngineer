@@ -6,6 +6,7 @@ pub mod ss1d_circuits;
 
 pub mod errors;
 
+use std::collections::HashMap;
 // Standard modules
 use std::{fmt::Debug, marker::PhantomData};
 use std::rc::Rc;
@@ -14,6 +15,7 @@ use std::cell::RefCell;
 // Local modules
 use flux_formulas::*;
 use gmatlib::{col_vec, Matrix};
+use geqslib::newton::multivariate_newton_raphson;
 
 pub type ElementConstructor<T> = fn (Rc<RefCell<GenericNode>>, Rc<RefCell<GenericNode>>, T) -> anyhow::Result<GenericElement>;
 
@@ -118,5 +120,44 @@ impl <T> NodalAnalysisStudy<T>
         self.elements.push(elem);
 
         Ok(())
+    }
+
+    fn generate_system(&self) -> anyhow::Result<(
+        HashMap<String, f64>, 
+        Vec<impl Fn(&HashMap<String, f64>) -> anyhow::Result<f64>>
+    )>
+    {
+        let mut independents = HashMap::new();
+        let mut dependents = Vec::new();
+        
+        for (i, node) in (&self.nodes).iter().enumerate()
+        {
+            for (j, component) in node.try_borrow()?.potential.iter().enumerate()
+            {
+                independents.insert(format!("{i},{j}"), *component);
+                
+                let local_node_ref = Rc::clone(&self.nodes[i]);
+
+                dependents.push(move |x: &HashMap<String, f64>| {
+                    // Get access to the node
+                    let mut local_node = local_node_ref.try_borrow_mut()?;
+
+                    let p_init = local_node.potential[(j, 0)];                  // Get the initial value
+                    local_node.potential[(j, 0)] = x[&format!("{i},{j}")];      // Overwrite the nodal potential
+                    let ret_val = local_node.get_flux_discrepancy()?[(j, 0)];   // Get the value of interest
+                    local_node.potential[(j, 0)] = p_init;                      // Set the value back to initial state
+
+                    Ok(ret_val)
+                });
+            }
+        }
+        Ok((independents, dependents))
+    }
+
+    pub fn solve(&self) -> anyhow::Result<()>
+    {
+        let (guess, f) = self.generate_system()?;
+        let soln = multivariate_newton_raphson(f, &mut guess, 0.0001, 1000)?;
+
     }
 }
