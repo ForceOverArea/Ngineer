@@ -8,15 +8,17 @@ mod trait_impls;
 /// other Rust projects.
 pub mod ffi;
 
+use core::slice;
 use std::{fmt::Debug, fmt::Display};
-use std::ops::{AddAssign, MulAssign, Neg};
+use std::ops::{AddAssign, MulAssign, Neg, SubAssign};
+use std::mem::swap;
 use anyhow::{Error, Result};
 use error::*;
 use num_traits::Num;
 pub use trait_impls::*;
 
 /// A helper trait to constrain the type of the elements of a `Matrix<T>`.
-pub trait Element<T>: Num + Copy + Debug + Display + AddAssign + MulAssign + Neg<Output = T> {}
+pub trait Element<T>: Num + Copy + Debug + Display + AddAssign + MulAssign + SubAssign + Neg<Output = T> {}
 
 impl Element<f32> for f32 {}
 impl Element<f64> for f64 {}
@@ -107,7 +109,7 @@ where T: Element<T>
     ///     2,
     ///     vec![1, 0,
     ///          0, 1]
-    /// ).unwrap();
+    /// ).expect("Failed to create matrix");
     /// 
     /// assert_eq!(a, Matrix::new_identity(2));
     /// ```
@@ -203,6 +205,32 @@ where T: Element<T>
         self.cols
     }
 
+    /// Returns an iterator over the elements of the matrix.
+    /// The order of the elements is left-to-right, 
+    /// top-to-bottom.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(
+    ///     2,
+    ///     vec![1, 2,
+    ///          3, 4]
+    /// ).expect("Failed to create matrix");
+    /// 
+    /// let check = &[1, 2, 3, 4];
+    /// 
+    /// for (idx, elem) in a.iter().enumerate()
+    /// {
+    ///     assert_eq!(&check[idx], elem)
+    /// }
+    /// ```
+    pub fn iter(&self) -> slice::Iter<'_, T>
+    {
+        self.vals.iter()
+    }
+
     /// Swaps the locations of two rows in the matrix.
     /// 
     /// # Example
@@ -220,7 +248,7 @@ where T: Element<T>
     ///          0, 1, 0]
     /// );
     /// ```
-    pub fn inplace_row_swap(&mut self, r1: usize, r2: usize) -> ()
+    pub fn inplace_row_swap(&mut self, r1: usize, r2: usize)
     {
         let mut storage: T;
         for i in 0..self.cols
@@ -243,7 +271,7 @@ where T: Element<T>
     /// 
     /// assert_eq!(a[(1, 1)], 3);
     /// ```
-    pub fn inplace_row_scale(&mut self, row: usize, scalar: T) -> ()
+    pub fn inplace_row_scale(&mut self, row: usize, scalar: T)
     {
         for i in 0..self.cols
         {
@@ -270,7 +298,7 @@ where T: Element<T>
     ///          0, 0, 4]
     /// );
     /// ```
-    pub fn inplace_scale(&mut self, scalar: T) -> ()
+    pub fn inplace_scale(&mut self, scalar: T)
     {
         for i in 0..self.rows
         {
@@ -296,7 +324,7 @@ where T: Element<T>
     ///          0, 0, 1]
     /// );
     /// ```
-    pub fn inplace_row_add(&mut self, r1: usize, r2: usize) -> ()
+    pub fn inplace_row_add(&mut self, r1: usize, r2: usize)
     {
         for i in 0..self.cols
         {
@@ -324,7 +352,7 @@ where T: Element<T>
     ///          0, 0, 1]
     /// );
     /// ```
-    pub fn inplace_scaled_row_add(&mut self, r1: usize, r2: usize, scalar: T) -> ()
+    pub fn inplace_scaled_row_add(&mut self, r1: usize, r2: usize, scalar: T)
     {
         for i in 0..self.cols
         {
@@ -526,10 +554,7 @@ where T: Element<T>
     pub fn transpose(&self) -> Matrix<T>
     {
         let mut tspose = self.clone();
-        
-        let rows    = tspose.rows;
-        tspose.rows = tspose.cols;
-        tspose.cols = rows;
+        swap(&mut tspose.rows, &mut tspose.cols);
 
         for i in 0..self.rows
         {    

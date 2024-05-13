@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::iter::zip;
-use std::ops::{Add, BitOr, Index, IndexMut, Mul};
+use std::ops::{Add, AddAssign, BitOr, Index, IndexMut, Mul, Sub, SubAssign};
 use crate::{Matrix, Element};
 
 impl <T> Display for Matrix<T>
@@ -60,7 +60,7 @@ where T: Element<T>
     /// ``` 
     fn bitor(self, rhs: Self) -> Self::Output 
     {
-        self.augment_with(&rhs).unwrap()
+        self.augment_with(rhs).unwrap()
     }
 }
 
@@ -229,6 +229,207 @@ where T: Element<T>
                 .map(|(l, r)| *l + *r)
         );
         ret_val
+    }
+}
+
+impl <T> AddAssign for Matrix<T>
+where T: Element<T>
+{
+    fn add_assign(&mut self, rhs: Self) 
+    {
+        if self.rows != rhs.rows || 
+           self.cols != rhs.cols
+        {
+            panic!("cannot add elements of matrices with different sizes")
+        }
+
+        for (i, elem) in rhs.iter().enumerate()
+        {
+            self.vals[i] += *elem;
+        }
+    }
+}
+
+// Matrix subtraction (Impl's for all combinations of reference and owned values)
+impl <T> Sub<Matrix<T>> for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Performs element-wise subtraction between 
+    /// all elements of two matrices. 
+    /// 
+    /// # Panics
+    /// This method will panic if the matrices being
+    /// added are of different sizes.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![ 7,  8,  9, 
+    ///          10, 11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (a - b).into();
+    /// assert_eq!(
+    ///     c,
+    ///     vec![-6, -6, -6,
+    ///          -6, -6, -6]
+    /// );
+    /// ```
+    fn sub(self, rhs: Matrix<T>) -> Self::Output {
+        &self - &rhs
+    }
+}
+
+impl <T> Sub<Matrix<T>> for &Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Performs element-wise subtraction between 
+    /// all elements of two matrices. 
+    /// 
+    /// # Panics
+    /// This method will panic if the matrices being
+    /// added are of different sizes.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![ 7,  8,  9, 
+    ///          10, 11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (&a - b).into();
+    /// assert_eq!(
+    ///     c,
+    ///     vec![-6, -6, -6,
+    ///          -6, -6, -6]
+    /// );
+    /// ```
+    fn sub(self, rhs: Matrix<T>) -> Self::Output {
+        self - &rhs
+    }
+}
+
+impl <T> Sub<&Matrix<T>> for Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Performs element-wise subtraction between 
+    /// all elements of two matrices. 
+    /// 
+    /// # Panics
+    /// This method will panic if the matrices being
+    /// added are of different sizes.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![ 7,  8,  9, 
+    ///          10, 11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (a - &b).into();
+    /// assert_eq!(
+    ///     c,
+    ///     vec![-6, -6, -6,
+    ///          -6, -6, -6]
+    /// );
+    /// ```
+    fn sub(self, rhs: &Matrix<T>) -> Self::Output {
+        &self - rhs
+    }
+}
+
+impl <T> Sub<&Matrix<T>> for &Matrix<T>
+where T: Element<T>
+{
+    type Output = Matrix<T>;
+
+    /// Performs element-wise subtraction between 
+    /// all elements of two matrices. 
+    /// 
+    /// # Panics
+    /// This method will panic if the matrices being
+    /// added are of different sizes.
+    /// 
+    /// # Example
+    /// ```
+    /// use gmatlib::Matrix;
+    /// 
+    /// let a: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![1, 2, 3,
+    ///          4, 5, 6]
+    /// ).unwrap();
+    /// 
+    /// let b: Matrix<i32> = Matrix::from_vec(3,
+    ///     vec![ 7,  8,  9, 
+    ///          10, 11, 12]
+    /// ).unwrap();
+    /// 
+    /// let c: Vec<i32> = (&a - &b).into();
+    /// assert_eq!(
+    ///     c,
+    ///     vec![-6, -6, -6,
+    ///          -6, -6, -6]
+    /// );
+    /// ```
+    fn sub(self, rhs: &Matrix<T>) -> Self::Output 
+    {
+        if self.rows != rhs.rows || 
+           self.cols != rhs.cols
+        {
+            panic!("cannot subtract elements of matrices with different sizes")
+        }
+
+        let mut ret_val = Matrix::new(self.rows, self.cols);
+        ret_val.vals = Vec::from_iter(
+            zip(&self.vals, &rhs.vals)
+                .map(|(l, r)| *l - *r)
+        );
+        ret_val
+    }
+}
+
+impl <T> SubAssign for Matrix<T>
+where T: Element<T>
+{
+    fn sub_assign(&mut self, rhs: Self) 
+    {
+        if self.rows != rhs.rows || 
+           self.cols != rhs.cols
+        {
+            panic!("cannot subtract elements of matrices with different sizes")
+        }
+
+        for (i, elem) in rhs.iter().enumerate()
+        {
+            self.vals[i] -= *elem;
+        }
     }
 }
 
@@ -503,7 +704,7 @@ where T: Element<T>
     }
 }
 
-impl <T> Into<Vec<T>> for Matrix<T>
+impl <T> From<Matrix<T>> for Vec<T>
 where T: Element<T>
 {
     /// Returns the contiguous contents of a `Matrix<T>`
@@ -527,8 +728,8 @@ where T: Element<T>
     /// 
     /// assert_eq!(five, a_vec[4]);
     /// ```
-    fn into(self) -> Vec<T> {
-        self.vals
+    fn from(value: Matrix<T>) -> Self {
+        value.vals
     }
 }
 
