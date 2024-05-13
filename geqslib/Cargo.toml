@@ -10,7 +10,7 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.78"
-gmatlib = "0.0.3"
+gmatlib = { path = "../gmatlib" }
 lazy_static = "1.4.0"
 regex = "1.10.2"
 
