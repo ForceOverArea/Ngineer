@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 use gmatlib::Matrix;
 use crate::errors::NewtonRaphsonSolverError;
 
@@ -98,8 +99,10 @@ where anyhow::Error: From<E>
 /// assert!(soln["x"] - 6.5 < 0.0001);
 /// assert!(soln["y"] - 2.5 < 0.0001);
 /// ```
-pub fn multivariate_newton_raphson<E>(f: Vec<impl Fn(&HashMap<String, f64>) -> Result<f64, E>>, guess: &mut HashMap<String, f64>, margin: f64, limit: usize) -> anyhow::Result<&mut HashMap<String, f64>>
-where anyhow::Error: From<E>
+pub fn multivariate_newton_raphson<K, E>(f: Vec<impl Fn(&HashMap<K, f64>) -> Result<f64, E>>, guess: &mut HashMap<K, f64>, margin: f64, limit: usize) -> anyhow::Result<&mut HashMap<K, f64>>
+where 
+    K: Clone + Eq + Hash,
+    anyhow::Error: From<E>,
 {
     // Catch illegal margin of error
     if margin <= 0.0
@@ -113,7 +116,7 @@ where anyhow::Error: From<E>
         return Err(NewtonRaphsonSolverError::ReachedIterationLimit.into());
     }
 
-    // Establish system size
+    // Establish system size and ensure number of functions == number of vars
     let n = f.len();
     if guess.len() != n
     {
@@ -128,12 +131,16 @@ where anyhow::Error: From<E>
         elements.append(row);
     }
     let mut jacobian = Matrix::from_vec(n, elements)?; // <- should this be a panic on failure?
-    let vars = Vec::from_iter(guess.keys().map(|x| x.to_string()));
+    
+    // Copy keys to iterate over hashmap
+    let vars = Vec::from_iter(
+        guess.keys().map(|x| x.to_owned())
+    );
 
     // Correct jacobian values and invert
-    for j in 0..n
+    for (j, var) in vars.iter().enumerate()
     {
-        if let Some(v) = guess.get_mut(&vars[j])
+        if let Some(v) = guess.get_mut(var)
         {
             *v += _DX_;
         } 
@@ -142,7 +149,7 @@ where anyhow::Error: From<E>
             // mutate values to partial derivatives
             jacobian[(i, j)] = (f[i](guess)? - jacobian[(i, j)]) / _DX_;
         }
-        if let Some(v) = guess.get_mut(&vars[j])
+        if let Some(v) = guess.get_mut(var)
         {
             *v -= _DX_;
         } 
