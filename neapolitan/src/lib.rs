@@ -13,6 +13,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 // Local modules
+use errors::EquationGenerationError;
 use flux_formulas::*;
 use gmatlib::{col_vec, Matrix};
 use geqslib::newton::multivariate_newton_raphson;
@@ -83,6 +84,13 @@ impl GenericNode
     } 
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
+struct ComponentIndex
+{
+    node: u32,
+    component: u32,
+}
+
 #[derive(Clone, Debug, PartialEq)] 
 pub struct NodalAnalysisStudy<T>
 {
@@ -122,11 +130,24 @@ impl <T> NodalAnalysisStudy<T>
         Ok(())
     }
 
+    
     fn generate_system(&self) -> anyhow::Result<(
-        HashMap<String, f64>, 
-        Vec<impl Fn(&HashMap<String, f64>) -> anyhow::Result<f64>>
+        Vec<impl Fn(&HashMap<ComponentIndex, f64>) -> anyhow::Result<f64>>,
+        HashMap<ComponentIndex, f64>, 
     )>
     {
+        let num_components = match self.nodes.first()
+        {
+            Some(node) => node.try_borrow()?.potential.get_rows(),
+            None => return Err(EquationGenerationError::NoNodesInSystem.into()),
+        };
+
+        if self.nodes.len() > u32::MAX as usize ||
+           num_components > u32::MAX as usize
+        {
+            return Err(EquationGenerationError::NodeCountIntegerOverflow.into())
+        }
+
         let mut independents = HashMap::new();
         let mut dependents = Vec::new();
         
@@ -134,30 +155,41 @@ impl <T> NodalAnalysisStudy<T>
         {
             for (j, component) in node.try_borrow()?.potential.iter().enumerate()
             {
-                independents.insert(format!("{i},{j}"), *component);
+                // Get the position of this component in the jacobian
+                let idx = ComponentIndex 
+                { 
+                    node: i as u32, 
+                    component: j as u32 
+                };
+
+                independents.insert(idx, *component);
                 
                 let local_node_ref = Rc::clone(&self.nodes[i]);
 
-                dependents.push(move |x: &HashMap<String, f64>| {
+                dependents.push(move |x: &HashMap<ComponentIndex, f64>| {
                     // Get access to the node
-                    let mut local_node = local_node_ref.try_borrow_mut()?;
+                    let mut local_node = local_node_ref.try_borrow_mut()?;                    
 
-                    let p_init = local_node.potential[(j, 0)];                  // Get the initial value
-                    local_node.potential[(j, 0)] = x[&format!("{i},{j}")];      // Overwrite the nodal potential
-                    let ret_val = local_node.get_flux_discrepancy()?[(j, 0)];   // Get the value of interest
-                    local_node.potential[(j, 0)] = p_init;                      // Set the value back to initial state
+                    // Get the initial value and overwrite the nodal potential
+                    let p_init = local_node.potential[(j, 0)];
+                    local_node.potential[(j, 0)] = x[&idx];
+                    
+                    // Get the value of interest and set the value back to initial state
+                    let ret_val = local_node.get_flux_discrepancy()?[(j, 0)];
+                    local_node.potential[(j, 0)] = p_init;
 
                     Ok(ret_val)
                 });
             }
         }
-        Ok((independents, dependents))
+        Ok((dependents, independents))
     }
 
     pub fn solve(&self) -> anyhow::Result<()>
     {
-        let (guess, f) = self.generate_system()?;
+        let (f, guess) = self.generate_system()?;
         let soln = multivariate_newton_raphson(f, &mut guess, 0.0001, 1000)?;
 
+        
     }
 }
