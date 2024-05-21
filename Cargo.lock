@@ -66,6 +66,8 @@ dependencies = [
  "anyhow",
  "geqslib",
  "gmatlib",
+ "serde",
+ "serde_json",
  "thiserror",
 ]
 
