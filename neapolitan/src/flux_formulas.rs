@@ -17,7 +17,7 @@ pub (in crate) fn normal_flux(
     let onode = onode_ref.try_borrow()?;
     let inode = inode_ref.try_borrow()?;
 
-    let deltas = &(onode.potential) - &(inode.potential);
+    let deltas = &(inode.potential) - &(onode.potential);
 
     Ok(deltas * gain)
 }
@@ -36,13 +36,16 @@ pub (in crate) fn observe_flux(
         false => (inode_ref, onode_ref),
     };
 
-    let mut sub = sub_ref.try_borrow_mut()?;
-    let dom = dom_ref.try_borrow()?;
+    {
+        let mut sub = sub_ref.try_borrow_mut()?;
+        let dom = dom_ref.try_borrow()?;
 
-    // Adjust potential of submissive node
-    sub.potential = &(dom.potential) + delta;
+        // Adjust potential of submissive node
+        sub.potential = &(dom.potential) + delta;
+    }
 
-    Ok(sub.get_flux_discrepancy()?)
+    let discrepancy = sub_ref.try_borrow()?.get_flux_discrepancy()?;
+    Ok(discrepancy)
 }
 
 pub (in crate) fn constant_flux(

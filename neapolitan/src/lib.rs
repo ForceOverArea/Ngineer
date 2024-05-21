@@ -195,11 +195,14 @@ impl <T> NodalAnalysisStudy<T>
 
         self.elements.push(elem);
 
+        // println!("Connected node {input} to node {output} with {element_type:#?}.");
         Ok(())
     }
 
     pub fn ground_node(&mut self, node: usize)
     {
+        // println!("Grounded node: {node}");
+
         let mut grounded_node = self.nodes[node].borrow_mut();
         let n = grounded_node.potential.get_rows();
         
@@ -232,10 +235,10 @@ impl <T> NodalAnalysisStudy<T>
         let mut dependents = Vec::new();
         
         for (i, node) in (&self.nodes).iter()
-            .filter(|x| !(x.borrow().is_locked)) // this is ok. the borrow will be dropped when the closure returns
             .enumerate()
+            .filter(|x| !(x.1.borrow().is_locked)) // this is ok. the borrow will be dropped when the closure returns
         {
-            println!("sigma balls {i}");
+            // println!("sigma balls {i}");
 
             for (j, component) in node.try_borrow()?
                 .potential
@@ -251,20 +254,23 @@ impl <T> NodalAnalysisStudy<T>
 
                 independents.insert(idx, *component);
                 
-                let local_node_ref = Rc::clone(&self.nodes[i]);
+                let local_node = Rc::clone(&self.nodes[i]);
 
                 dependents.push(move |x: &HashMap<ComponentIndex, f64>| {
-                    // Get access to the node
-                    let mut local_node = local_node_ref.try_borrow_mut()?;                    
-
-                    // Get the initial value and overwrite the nodal potential
-                    let p_init = local_node.potential[(j, 0)];
-                    local_node.potential[(j, 0)] = x[&idx];
-                    
-                    // Get the value of interest and set the value back to initial state
-                    let flux_discrepancy = local_node.get_flux_discrepancy()?[(j, 0)];
-                    local_node.potential[(j, 0)] = p_init;
-
+                    let p_init;
+                    let flux_discrepancy;
+                    {
+                        // println!("Getting the initial value and overwriting the nodal potential...");
+                        p_init = local_node.try_borrow()?.potential[(j, 0)];
+                        local_node.try_borrow_mut()?.potential[(j, 0)] = x[&idx];
+                        // println!("Done!");
+                    }
+                    {
+                        // println!("Getting the value of interest and setting the value back to initial state...");
+                        flux_discrepancy = local_node.try_borrow()?.get_flux_discrepancy()?[(j, 0)];
+                        local_node.try_borrow_mut()?.potential[(j, 0)] = p_init;
+                        // println!("Done!");
+                    }
                     Ok(flux_discrepancy)
                 });
             }
@@ -318,11 +324,14 @@ impl <T> NodalAnalysisStudy<T>
 /// 
 /// # Example
 /// ```
+/// use std::rc::Rc;
 /// use neapolitan::{GenericNode, is_locked};
 /// 
 /// let my_node_ref = GenericNode::new();
 /// 
-/// assert!(!is_locked(my_node_ref.downgrade()))
+/// assert!(
+///     !(is_locked(&Rc::downgrade(&my_node_ref)).unwrap())
+/// )
 /// ```
 pub fn is_locked(node_ref: &Weak<RefCell<GenericNode>>) -> anyhow::Result<bool>
 {

@@ -32,23 +32,25 @@ pub fn voltage_source(input: Weak<RefCell<GenericNode>>, output: Weak<RefCell<Ge
     }
 
     // Determine if we're driving the input or output node
-    let drives_output = is_locked(&output)?;
+    let drives_output = !is_locked(&output)?;
+
+    // Remove the appropriate DOF
+    if drives_output
+    {
+        // println!("locking output node!");
+        lock_node(&output)?;
+    } 
+    else // driving input node:
+    {
+        // println!("locking input node!");
+        lock_node(&input)?;
+    }
 
     // If we're driving the output node, we need to make the input node aware of this element.
     let connect_input_node = drives_output;
 
     // If we're not going to make the input aware of this element, make the output node aware.
     let connect_output_node = !connect_input_node;
-
-    // Remove the appropriate DOF
-    if drives_output
-    {
-        lock_node(&output)?;
-    } 
-    else // driving input node:
-    {
-        lock_node(&input)?;
-    }
     
     GenericElement::try_new(
         col_vec![voltage],
