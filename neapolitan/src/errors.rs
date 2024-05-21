@@ -13,3 +13,14 @@ pub enum EquationGenerationError
     #[error("the system equations could not be generated because there were no nodes in the system")]
     NoNodesInSystem,
 }
+
+#[derive(Debug, Error)]
+pub enum FluxCalculationError
+{
+    #[error("failed to access nodes during flux calculation because they were already dropped.")]
+    NodeRefsAlreadyDropped,
+}
+
+#[derive(Debug, Error)]
+#[error("node reference was already dropped before attempting to borrow from refcell")]
+pub struct DroppedNodeError;
