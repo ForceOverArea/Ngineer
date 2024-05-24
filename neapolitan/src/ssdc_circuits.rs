@@ -7,7 +7,7 @@ use gmatlib::{col_vec, Matrix};
 
 // Local modules
 use crate::errors::ElementCreationError;
-use crate::{flux_formulas::*, is_locked, lock_node};
+use crate::{flux_formulas::*, get_node_potential, is_locked, lock_node, set_node_potential};
 use crate::{GenericElement, GenericNode, NodalAnalysisStudy};
 
 pub type SSDCCircuit = NodalAnalysisStudy<f64>;
@@ -37,13 +37,13 @@ pub fn voltage_source(input: Weak<RefCell<GenericNode>>, output: Weak<RefCell<Ge
     // Remove the appropriate DOF
     if drives_output
     {
-        // println!("locking output node!");
         lock_node(&output)?;
+        set_node_potential(&output, get_node_potential(&input)? + col_vec![voltage])?;
     } 
     else // driving input node:
     {
-        // println!("locking input node!");
         lock_node(&input)?;
+        set_node_potential(&input, get_node_potential(&output)? + col_vec![voltage])?;
     }
 
     // If we're driving the output node, we need to make the input node aware of this element.

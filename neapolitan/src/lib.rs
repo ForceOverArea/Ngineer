@@ -126,22 +126,29 @@ impl GenericNode
 
     pub fn get_flux_discrepancy(&self) -> anyhow::Result<Matrix<f64>>
     {
-        let mut ret_val = Matrix::new(
+        let mut inputs = Matrix::new(
             self.potential.get_rows(),
             self.potential.get_cols(),
         ); 
 
+        let mut outputs = inputs.clone();
+
         for elem in &self.inputs
         {
-            ret_val += elem.get_flux()?;
+            inputs += elem.get_flux()?;
         }
 
         for elem in &self.outputs
         {
-            ret_val -= elem.get_flux()?;
+            outputs += elem.get_flux()?;
         }
 
-        return Ok(ret_val)
+        println!("     Inputs = {inputs}");
+        println!("    Outputs = {outputs}");
+
+        let discrepancy = inputs - outputs;
+        println!("Discrepancy = {discrepancy}");
+        return Ok(discrepancy)
     } 
 }
 
@@ -238,8 +245,6 @@ impl <T> NodalAnalysisStudy<T>
             .enumerate()
             .filter(|x| !(x.1.borrow().is_locked)) // this is ok. the borrow will be dropped when the closure returns
         {
-            // println!("sigma balls {i}");
-
             for (j, component) in node.try_borrow()?
                 .potential
                 .iter()
@@ -254,24 +259,23 @@ impl <T> NodalAnalysisStudy<T>
 
                 independents.insert(idx, *component);
                 
-                let local_node = Rc::clone(&self.nodes[i]);
+                let local_nodes: Vec<Rc<RefCell<GenericNode>>> = self.nodes.iter()
+                    .map(|x| x.clone())
+                    .collect();
 
                 dependents.push(move |x: &HashMap<ComponentIndex, f64>| {
-                    let p_init;
-                    let flux_discrepancy;
+                    // Set values of all nodes
+                    for (&ComponentIndex { node, component }, &val) in x
                     {
-                        // println!("Getting the initial value and overwriting the nodal potential...");
-                        p_init = local_node.try_borrow()?.potential[(j, 0)];
-                        local_node.try_borrow_mut()?.potential[(j, 0)] = x[&idx];
-                        // println!("Done!");
+                        local_nodes[node as usize].try_borrow_mut()?
+                            .potential[(component as usize, 0)] = val;
                     }
-                    {
-                        // println!("Getting the value of interest and setting the value back to initial state...");
-                        flux_discrepancy = local_node.try_borrow()?.get_flux_discrepancy()?[(j, 0)];
-                        local_node.try_borrow_mut()?.potential[(j, 0)] = p_init;
-                        // println!("Done!");
-                    }
-                    Ok(flux_discrepancy)
+
+                    // Perform flux balance
+                    let flux_discrepancy = local_nodes[i].try_borrow()?.get_flux_discrepancy()?;
+
+                    // Report only component of interest
+                    Ok(flux_discrepancy[(j, 0)])
                 });
             }
         }
@@ -353,6 +357,31 @@ pub fn lock_node(node_ref: &Weak<RefCell<GenericNode>>) -> anyhow::Result<()>
         Ok(())
     }
     else 
+    {
+        Err(DroppedNodeError.into())
+    }
+}
+
+pub fn get_node_potential(node_ref: &Weak<RefCell<GenericNode>>) -> anyhow::Result<Matrix<f64>>
+{
+    if let Some(node) = node_ref.upgrade()
+    {
+        Ok(node.try_borrow_mut()?.potential.clone())
+    }
+    else
+    {
+        Err(DroppedNodeError.into())
+    }
+}
+
+pub fn set_node_potential(node_ref: &Weak<RefCell<GenericNode>>, potential: Matrix<f64>) -> anyhow::Result<()>
+{
+    if let Some(node) = node_ref.upgrade()
+    {
+        node.try_borrow_mut()?.potential += potential;
+        Ok(())
+    }
+    else
     {
         Err(DroppedNodeError.into())
     }
