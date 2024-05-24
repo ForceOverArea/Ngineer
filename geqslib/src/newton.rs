@@ -163,13 +163,13 @@ where
         y[i] = f[i](guess)?;
     }
     let error = y.iter()
-        .map(|v| v.abs())
+        .map(|v| v.powi(2))
         .sum::<f64>();
 
     // Calculate change vector and its magnitude
-    let deltas: Vec<f64> = (jacobian * Matrix::from_col_vec(y)).into();
+    let deltas = jacobian * Matrix::from_col_vec(y);
     let change = deltas.iter()
-        .map(|d| d.abs())
+        .map(|d| d.powi(2))
         .sum::<f64>()
         .sqrt();
 
@@ -181,7 +181,7 @@ where
     // Build next guess vector
     for (i, var) in vars.iter().enumerate().take(n)
     {
-        if let (Some(guess_val), Some(delta)) = (guess.get_mut(var), deltas.get(i))
+        if let (Some(guess_val), delta) = (guess.get_mut(var), deltas[(i, 0)])
         {
             *guess_val -= delta;
         }
