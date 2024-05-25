@@ -4,10 +4,7 @@ use std::cell::RefCell;
 
 use crate::GenericNode;
 
-/// The function signature used to calculate flux between nodes.
-pub type FluxCalculation = fn (Rc<RefCell<GenericNode>>, Rc<RefCell<GenericNode>>, &Matrix<f64>, bool) -> anyhow::Result<Matrix<f64>>;
-
-pub (in crate) fn normal_flux(
+pub fn normal_flux(
     inode_ref: Rc<RefCell<GenericNode>>, 
     onode_ref: Rc<RefCell<GenericNode>>, 
     gain: &Matrix<f64>, 
@@ -22,32 +19,44 @@ pub (in crate) fn normal_flux(
     Ok(deltas)
 }
 
-pub (in crate) fn observe_flux(
+pub fn observe_flux(
     inode_ref: Rc<RefCell<GenericNode>>, 
     onode_ref: Rc<RefCell<GenericNode>>, 
     delta: &Matrix<f64>, 
     drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
 {
-    // Select node to set potential of
-    let (sub_ref, dom_ref) = match drives_output
-    {
-        true  => (onode_ref, inode_ref),
-        false => (inode_ref, onode_ref),
-    };
-
-    let mut sub = sub_ref.try_borrow_mut()?;
-    let dom = dom_ref.try_borrow()?;
+    let sub_ref;
 
     // Adjust potential of submissive node and drop mutable ref
-    sub.potential = &(dom.potential) + delta;
-    drop(sub);
+    if drives_output 
+    {
+        let mut sub = onode_ref.try_borrow_mut()?;
+        let dom = inode_ref.try_borrow()?;
+
+        // Add delta if output node is the driver
+        sub.potential = &(dom.potential) + delta;
+        drop(sub);
+
+        sub_ref = onode_ref;
+    }
+    else
+    {
+        let mut sub = inode_ref.try_borrow_mut()?;
+        let dom = onode_ref.try_borrow()?;
+
+        // Subtract delta if output node is the driver
+        sub.potential = &(dom.potential) - delta;
+        drop(sub);
+
+        sub_ref = inode_ref;
+    }
 
     let discrepancy = sub_ref.try_borrow()?.get_flux_discrepancy()?;
     Ok(discrepancy * -1.0)
 }
 
-pub (in crate) fn constant_flux(
+pub fn constant_flux(
     _inode_ref: Rc<RefCell<GenericNode>>, 
     _onode_ref: Rc<RefCell<GenericNode>>, 
     flux: &Matrix<f64>, 
