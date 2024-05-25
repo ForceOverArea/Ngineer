@@ -9,7 +9,7 @@ Ngineer is a collection of miscellaneous tools for modelling and solving a wide 
 ### Geqslib - Simple Equation and System Solving in Rust
 `geqslib` is a rust crate that offers simple functions for evaluating math expressions as strings, finding roots of numerical functions, and solving 1 or more equations simultaneously.
 
-### Nexsys - Solve Systems Equations in Plaintext Format
+### Nexsys - Solve Systems of Equations in Plaintext Format
 
 <img title="Nexsys Logo" alt="Nexsys Logo" src="nexsys/nexsys_logo_full.png" height="50px"/>
 
