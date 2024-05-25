@@ -1,4 +1,8 @@
-use neapolitan::ssdc_circuits::{SSDCCircuit, resistor, voltage_source};
+use gmatlib::col_vec;
+use neapolitan::{get_node_potential, set_node_potential, ssdc_circuits::{resistor, voltage_source, SSDCCircuit}, GenericNode};
+use rand::random;
+use std::rc::Rc;
+use gmatlib::Matrix;
 
 #[test]
 fn architecture_test()
@@ -17,4 +21,35 @@ fn architecture_test()
         .expect("Failed to solve model");
 
     println!("{:#?}", soln);
+}
+
+#[test]
+fn fuzz_resistor_flux_calcs()
+{
+    for _ in 0..1000
+    {
+        let test_res = random::<f64>();
+        let output_potential = random::<f64>();
+
+        let node1 = GenericNode::new();
+        let node2 = GenericNode::new();
+
+        set_node_potential(&Rc::downgrade(&node2), col_vec![output_potential]).unwrap();
+        let res = resistor(Rc::downgrade(&node1), Rc::downgrade(&node2), test_res).unwrap();
+
+        let expected = (1.0 - output_potential) / test_res;
+
+        assert!(output_potential
+                - get_node_potential(&Rc::downgrade(&node2)).unwrap()[(0, 0)]
+                < 1E-10);
+
+        // println!("input_pot:  {}", get_node_potential(&Rc::downgrade(&node1)).unwrap());
+        // println!("output_pot: {}", get_node_potential(&Rc::downgrade(&node2)).unwrap());
+        // println!("resistance: {test_res}");
+        // println!("expected:   {expected}");
+
+        assert!(expected 
+                - res.get_flux().unwrap()[(0, 0)]
+                < 1E-10);
+    }
 }

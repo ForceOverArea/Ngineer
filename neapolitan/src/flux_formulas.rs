@@ -17,8 +17,9 @@ pub (in crate) fn normal_flux(
     let onode = onode_ref.try_borrow()?;
     let inode = inode_ref.try_borrow()?;
 
-    let deltas = &(inode.potential) - &(onode.potential);
-    Ok(deltas * gain)
+    let mut deltas = &(inode.potential) - &(onode.potential);
+    deltas.inplace_scale(gain[(0, 0)]);
+    Ok(deltas)
 }
 
 pub (in crate) fn observe_flux(
@@ -43,7 +44,7 @@ pub (in crate) fn observe_flux(
     drop(sub);
 
     let discrepancy = sub_ref.try_borrow()?.get_flux_discrepancy()?;
-    Ok(discrepancy)
+    Ok(discrepancy * -1.0)
 }
 
 pub (in crate) fn constant_flux(

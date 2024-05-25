@@ -86,7 +86,7 @@ impl GenericElement
         }
     }
 
-    fn get_flux(&self) -> anyhow::Result<Matrix<f64>>
+    pub fn get_flux(&self) -> anyhow::Result<Matrix<f64>>
     {
         if let (Some(inode), Some(onode)) = (self.input_node.upgrade(), self.output_node.upgrade())
         {
@@ -264,6 +264,8 @@ impl <T> NodalAnalysisStudy<T>
                     .collect();
 
                 dependents.push(move |x: &HashMap<ComponentIndex, f64>| {
+                    println!("Node: {i}, Component: {j}\n  Potential = {} ", &x[&ComponentIndex{node: i as u32, component: j as u32}]);
+                    
                     // Set values of all nodes
                     for (&ComponentIndex { node, component }, &val) in x
                     {
@@ -378,7 +380,7 @@ pub fn set_node_potential(node_ref: &Weak<RefCell<GenericNode>>, potential: Matr
 {
     if let Some(node) = node_ref.upgrade()
     {
-        node.try_borrow_mut()?.potential += potential;
+        node.try_borrow_mut()?.potential = potential;
         Ok(())
     }
     else
