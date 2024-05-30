@@ -7,12 +7,16 @@ use gmatlib::{col_vec, Matrix};
 
 // Local modules
 use crate::errors::ElementCreationError;
-use crate::{flux_formulas::*, get_node_potential, is_locked, lock_node, set_node_potential, Configure};
+use crate::{flux_formulas::*, get_node_potential, is_locked, lock_node, set_node_potential, Configure, NoMetadata};
 use crate::{GenericElement, GenericNode, NodalAnalysisStudy};
 
-pub type SSDCCircuit = NodalAnalysisStudy<f64, Configure>;
+pub type SSDCCircuit = NodalAnalysisStudy<f64, NoMetadata, Configure>;
 
-pub fn resistor(input: Weak<RefCell<GenericNode>>, output: Weak<RefCell<GenericNode>>, resistance: f64) -> anyhow::Result<Rc<GenericElement>>
+pub fn resistor(
+    input: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    output: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    resistance: f64
+) -> anyhow::Result<Rc<GenericElement<NoMetadata>>>
 {
     GenericElement::try_new(
         vec![1.0 / resistance], // Conductance (gain) is reciprocal of resistance in ohms
@@ -23,7 +27,11 @@ pub fn resistor(input: Weak<RefCell<GenericNode>>, output: Weak<RefCell<GenericN
     )
 }
 
-pub fn voltage_source(input: Weak<RefCell<GenericNode>>, output: Weak<RefCell<GenericNode>>, voltage: f64) -> anyhow::Result<Rc<GenericElement>>
+pub fn voltage_source(
+    input: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    output: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    voltage: f64
+) -> anyhow::Result<Rc<GenericElement<NoMetadata>>>
 {
     // Abort if we cannot remove a DOF from the problem
     if is_locked(&output)? && is_locked(&input)?
@@ -62,7 +70,11 @@ pub fn voltage_source(input: Weak<RefCell<GenericNode>>, output: Weak<RefCell<Ge
     )
 }
 
-pub fn current_source(input: Weak<RefCell<GenericNode>>, output: Weak<RefCell<GenericNode>>, current: f64) -> anyhow::Result<Rc<GenericElement>>
+pub fn current_source(
+    input: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    output: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    current: f64
+) -> anyhow::Result<Rc<GenericElement<NoMetadata>>>
 {
     GenericElement::try_new(
         vec![current],

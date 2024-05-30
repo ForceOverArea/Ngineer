@@ -6,7 +6,7 @@ use std::rc::Rc;
 fn architecture_test()
 {
     // Create a new NodalAnalysisStudy in the Configure state 
-    let mut circuit = SSDCCircuit::new();
+    let mut circuit = SSDCCircuit::default();
     circuit.add_nodes(4);
     circuit.ground_node(0);
 

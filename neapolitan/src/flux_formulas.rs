@@ -4,12 +4,13 @@ use std::cell::RefCell;
 
 use crate::GenericNode;
 
-pub fn normal_flux(
-    inode_ref: Rc<RefCell<GenericNode>>, 
-    onode_ref: Rc<RefCell<GenericNode>>, 
+pub fn normal_flux<M>(
+    inode_ref: Rc<RefCell<GenericNode<M>>>, 
+    onode_ref: Rc<RefCell<GenericNode<M>>>, 
     gain: &Matrix<f64>, 
     _drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
+where M: Default
 {
     let onode = onode_ref.try_borrow()?;
     let inode = inode_ref.try_borrow()?;
@@ -19,12 +20,13 @@ pub fn normal_flux(
     Ok(deltas)
 }
 
-pub fn observe_flux(
-    inode_ref: Rc<RefCell<GenericNode>>, 
-    onode_ref: Rc<RefCell<GenericNode>>, 
+pub fn observe_flux<M>(
+    inode_ref: Rc<RefCell<GenericNode<M>>>, 
+    onode_ref: Rc<RefCell<GenericNode<M>>>, 
     delta: &Matrix<f64>, 
     drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
+where M: Default
 {
     let sub_ref;
 
@@ -56,12 +58,13 @@ pub fn observe_flux(
     Ok(discrepancy * -1.0)
 }
 
-pub fn constant_flux(
-    _inode_ref: Rc<RefCell<GenericNode>>, 
-    _onode_ref: Rc<RefCell<GenericNode>>, 
+pub fn constant_flux<M>(
+    _inode_ref: Rc<RefCell<GenericNode<M>>>, 
+    _onode_ref: Rc<RefCell<GenericNode<M>>>, 
     flux: &Matrix<f64>, 
     _drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
+where M: Default
 {
     Ok(flux.clone())
 }
