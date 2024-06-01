@@ -1,50 +1,70 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use gmatlib::Matrix;
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use crate::GenericNode;
 
-/// The function signature used to calculate flux between nodes.
-pub type FluxCalculation = fn (Rc<RefCell<GenericNode>>, Rc<RefCell<GenericNode>>, &Matrix<f64>, bool) -> anyhow::Result<Matrix<f64>>;
-
-pub (in crate) fn normal_flux(
-    inode_ref: Rc<RefCell<GenericNode>>, 
-    onode_ref: Rc<RefCell<GenericNode>>, 
+pub fn normal_flux<M>(
+    inode_ref: Rc<RefCell<GenericNode<M>>>, 
+    onode_ref: Rc<RefCell<GenericNode<M>>>, 
     gain: &Matrix<f64>, 
-    _phantom_arg: bool
+    _drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
+where M: Default
 {
-    let (onode, inode) = (onode_ref.try_borrow()?, inode_ref.try_borrow()?);
-    let deltas = &(onode.potential) - &(inode.potential);
-    Ok(deltas * gain)
+    let onode = onode_ref.try_borrow()?;
+    let inode = inode_ref.try_borrow()?;
+
+    let mut deltas = &(inode.potential) - &(onode.potential);
+    deltas.inplace_scale(gain[(0, 0)]);
+    Ok(deltas)
 }
 
-pub (in crate) fn observe_flux(
-    inode_ref: Rc<RefCell<GenericNode>>, 
-    onode_ref: Rc<RefCell<GenericNode>>, 
+pub fn observe_flux<M>(
+    inode_ref: Rc<RefCell<GenericNode<M>>>, 
+    onode_ref: Rc<RefCell<GenericNode<M>>>, 
     delta: &Matrix<f64>, 
     drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
+where M: Default
 {
-    // Select node to set potential of
-    let (sub_ref, dom_ref) = match drives_output
+    let sub_ref;
+
+    // Adjust potential of submissive node and drop mutable ref
+    if drives_output 
     {
-        true  => (onode_ref, inode_ref),
-        false => (inode_ref, onode_ref),
-    };
+        let mut sub = onode_ref.try_borrow_mut()?;
+        let dom = inode_ref.try_borrow()?;
 
-    // Adjust potential of submissive node
-    let (mut sub, dom) = (sub_ref.try_borrow_mut()?, dom_ref.try_borrow()?);
-    sub.potential = &(dom.potential) + delta;
+        // Add delta if output node is the driver
+        sub.potential = &(dom.potential) + delta;
+        drop(sub);
 
-    Ok(sub.get_flux_discrepancy()?)
+        sub_ref = onode_ref;
+    }
+    else
+    {
+        let mut sub = inode_ref.try_borrow_mut()?;
+        let dom = onode_ref.try_borrow()?;
+
+        // Subtract delta if output node is the driver
+        sub.potential = &(dom.potential) - delta;
+        drop(sub);
+
+        sub_ref = inode_ref;
+    }
+
+    let discrepancy = sub_ref.try_borrow()?.get_flux_discrepancy()?;
+    Ok(discrepancy * -1.0)
 }
 
-pub (in crate) fn constant_flux(
-    _inode_ref: Rc<RefCell<GenericNode>>, 
-    _onode_ref: Rc<RefCell<GenericNode>>, 
-    delta: &Matrix<f64>, 
+pub fn constant_flux<M>(
+    _inode_ref: Rc<RefCell<GenericNode<M>>>, 
+    _onode_ref: Rc<RefCell<GenericNode<M>>>, 
+    flux: &Matrix<f64>, 
     _drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
+where M: Default
 {
-    Ok(delta.clone())
+    Ok(flux.clone())
 }
