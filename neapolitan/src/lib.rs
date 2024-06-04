@@ -419,9 +419,7 @@ where M: Default
 
                 independents.insert(idx, *component);
                 
-                let local_nodes: Vec<Rc<RefCell<GenericNode<M>>>> = self.nodes.iter()
-                    .cloned()
-                    .collect();
+                let local_nodes: Vec<Rc<RefCell<GenericNode<M>>>> = self.nodes.to_vec();
 
                 dependents.push(move |x: &HashMap<ComponentIndex, f64>| {
                     println!("Node: {i}, Component: {j}\n  Potential = {} ", &x[&ComponentIndex{node: i as u32, component: j as u32}]);
