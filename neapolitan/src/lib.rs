@@ -282,7 +282,7 @@ where M: Default
         }
 
         let discrepancy = inputs - outputs;
-        return Ok(discrepancy)
+        Ok(discrepancy)
     } 
 }
 
@@ -401,7 +401,7 @@ where M: Default
         let mut independents = HashMap::new();
         let mut dependents = Vec::new();
         
-        for (i, node) in (&self.nodes).iter()
+        for (i, node) in self.nodes.iter()
             .enumerate()
             .filter(|x| !(x.1.borrow().is_locked)) // this is ok. the borrow will be dropped when the closure returns
         {
@@ -420,7 +420,7 @@ where M: Default
                 independents.insert(idx, *component);
                 
                 let local_nodes: Vec<Rc<RefCell<GenericNode<M>>>> = self.nodes.iter()
-                    .map(|x| x.clone())
+                    .cloned()
                     .collect();
 
                 dependents.push(move |x: &HashMap<ComponentIndex, f64>| {
@@ -480,7 +480,7 @@ where M: Default
             );
         }
 
-        return Ok(ret_val)
+        Ok(ret_val)
     }
 }
 
