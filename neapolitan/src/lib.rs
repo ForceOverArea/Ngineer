@@ -17,10 +17,22 @@ use std::{fmt::Debug, marker::PhantomData};
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 
+use modelling::{element, NodalAnalysisModel};
 // 3rd party modules
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use geqslib::newton::multivariate_newton_raphson;
-pub use gmatlib::Matrix;
+
+/// This is a re-export of a `gmatlib::Matrix<T>`, a type for representing numerical 
+/// matrices and vectors and operating on them in a more math-oriented way.
+/// 
+/// `Matrix<T>`s represent a single, contiguous piece of memory that can be used in 
+/// source code as if it were an m x n matrix quantity. It implements multiplication,
+/// addition, and subtraction operations, and can also be inverted, sliced and 
+/// mutably/immutably indexed.
+/// 
+/// # For more info
+/// please see the [gmatlib docs](https://docs.rs/gmatlib/0.2.0/gmatlib/).
+pub type Matrix<T> = gmatlib::Matrix<T>;
 
 // Local modules
 use errors::{DroppedNodeError, EquationGenerationError};
@@ -42,181 +54,86 @@ pub struct NodalAnalysisStudyResult
     elements: HashMap<u32, Vec<f64>>,
 }
 
-pub struct Configure;
-pub struct Build;
-
-#[derive(Clone, Debug)] 
-pub struct NodalAnalysisStudy<T, S = Configure>
+/// A builder struct for building a customized instance of 
+/// the Neapolitan nodal analysis solver engine. This allows a
+/// user to extend it's functionality by adding custom elements
+/// and flux calculations to the engine's vocabulary.
+/// 
+/// # Example
+/// ```
+/// 
+/// ```
+#[derive(Clone, Debug, PartialEq)]
+pub struct NodalAnalysisStudyConfigurator
 {
-    elements: Vec<Rc<GenericElement>>,
-    nodes: Vec<Rc<RefCell<GenericNode>>>,
-    _phantom_type: PhantomData<T>,
-    _phantom_state: PhantomData<S>,
+    parent: &NodalAnalysisStudyBuilder,
+    dimension: usize,
+    elements: HashMap<String, ElementConstructor>,
 }
-impl <T, S> Default for NodalAnalysisStudy<T, S>
+impl NodalAnalysisStudyConfigurator
 {
-    fn default() -> Self 
+    /// Creates a new `NodalAnalysisStudyConfigurator` instance, allowing 
+    /// a user to create a customized instance of the Neapolitan solver engine.
+    /// 
+    /// # Example
+    /// ```
+    /// 
+    /// ```
+    pub fn new(dimension: usize) -> NodalAnalysisStudyConfigurator
     {
-        NodalAnalysisStudy
+        NodalAnalysisStudyConfigurator
         {
-            elements: vec![],
-            nodes: vec![],
-            _phantom_type: PhantomData,
-            _phantom_state: PhantomData
-        }
-    }
-}
-
-impl <T> NodalAnalysisStudy<T, Configure>
-{
-    pub fn add_nodes(&mut self, n: usize)
-    {
-        for _ in 0..n
-        {
-            self.nodes.push(GenericNode::new());
-        }
-    }
-
-    pub fn ground_node(&mut self, node: usize)
-    {
-        // println!("Grounded node: {node}");
-
-        let mut grounded_node = self.nodes[node].borrow_mut();
-        let n = grounded_node.potential.get_rows();
-        
-        for i in 0..n
-        {
-            grounded_node.potential[(i, 0)] = 0.0;
-        }
-
-        grounded_node.is_locked = true;
-    }
-
-    pub fn configure(self) -> NodalAnalysisStudy<T, Build>
-    {
-        NodalAnalysisStudy
-        {
-            elements: self.elements,
-            nodes: self.nodes,
-            _phantom_type: PhantomData,
-            _phantom_state: PhantomData
-        }
-    }
-}
-
-impl <T> NodalAnalysisStudy<T, Build>
-{
-    pub fn add_element(&mut self, element_type: ElementConstructor<T>, input: usize, output: usize, value: T) -> anyhow::Result<()>
-    {
-        let elem = (element_type)(
-            Rc::downgrade(&self.nodes[input]), 
-            Rc::downgrade(&self.nodes[output]), 
-            value)?;
-
-        self.elements.push(elem);
-
-        // println!("Connected node {input} to node {output} with {element_type:#?}.");
-        Ok(())
-    }
-
-    fn generate_system(&self) -> anyhow::Result<(
-        Vec<impl Fn(&HashMap<ComponentIndex, f64>) -> anyhow::Result<f64>>,
-        HashMap<ComponentIndex, f64>, 
-    )>
-    {
-        let num_components = match self.nodes.first()
-        {
-            Some(node) => node.try_borrow()?.potential.get_rows(),
-            None => return Err(EquationGenerationError::NoNodesInSystem.into()),
-        };
-
-        if self.nodes.len() > u32::MAX as usize ||
-           num_components > u32::MAX as usize
-        {
-            return Err(EquationGenerationError::NodeCountIntegerOverflow.into())
-        }
-
-        let mut independents = HashMap::new();
-        let mut dependents = Vec::new();
-        
-        for (i, node) in self.nodes.iter()
-            .enumerate()
-            .filter(|x| !(x.1.borrow().is_locked)) // this is ok. the borrow will be dropped when the closure returns
-        {
-            for (j, component) in node.try_borrow()?
-                .potential
-                .iter()
-                .enumerate()
-            {
-                // Get the position of this component in the jacobian
-                let idx = ComponentIndex 
-                { 
-                    node: i as u32, 
-                    component: j as u32 
-                };
-
-                independents.insert(idx, *component);
-                
-                let local_nodes: Vec<Rc<RefCell<GenericNode>>> = self.nodes.to_vec();
-
-                dependents.push(move |x: &HashMap<ComponentIndex, f64>| {
-                    println!("Node: {i}, Component: {j}\n  Potential = {} ", &x[&ComponentIndex{node: i as u32, component: j as u32}]);
-                    
-                    // Set values of all nodes
-                    for (&ComponentIndex { node, component }, &val) in x
-                    {
-                        local_nodes[node as usize].try_borrow_mut()?
-                            .potential[(component as usize, 0)] = val;
-                    }
-
-                    // Perform flux balance
-                    let flux_discrepancy = local_nodes[i].try_borrow()?.get_flux_discrepancy()?;
-
-                    // Report only component of interest
-                    Ok(flux_discrepancy[(j, 0)])
-                });
-            }
-        }
-        Ok((dependents, independents))
-    }
-
-    pub fn solve(&self) -> anyhow::Result<NodalAnalysisStudyResult>
-    {
-        let mut ret_val = NodalAnalysisStudyResult 
-        { 
-            nodes: HashMap::new(), 
+            dimension,
             elements: HashMap::new(),
-        };
-        let (f, mut guess) = self.generate_system()?;
-        let soln = multivariate_newton_raphson(f, &mut guess, 0.0001, 1000)?;
-
-        // Set nodal potentials to solution
-        for (idx, component) in soln
-        {
-            let mut node = self.nodes[idx.node as usize].try_borrow_mut()?;
-            node.potential[(idx.component as usize, 0)] = *component;
         }
+    }
 
-        // Get all elemental flux values for solution 
-        // (do elements first so non-dof nodes have correct potential set)
-        for (idx, elem) in self.elements.iter().enumerate()
-        {
-            ret_val.elements.insert(
-                idx as u32, 
-                elem.get_flux()?.into(),
-            );
-        }
+    /// Adds a custom element to the study configuration, allowing a user to 
+    /// extend the variety of available elements in the solver engine.
+    /// 
+    /// # Example
+    /// ```
+    /// 
+    /// ``` 
+    pub fn add_element_type(mut self, name: &str, element_type: ElementConstructor) -> NodalAnalysisStudyConfigurator
+    {
+        self.elements.insert(
+            name.to_string(), 
+            element_type
+        );
 
-        // Get all nodal potential values for solution
-        for (idx, node) in self.nodes.iter().enumerate()
-        {
-            ret_val.nodes.insert(
-                idx as u32, 
-                node.try_borrow()?.potential.clone().into(),
-            );
-        }
+        self
+    }
 
-        Ok(ret_val)
+    pub fn configure(self) -> NodalAnalysisStudyBuilder
+    {
+
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct NodalAnalysisStudyBuilder
+{
+    configurator: HashMap<String, NodalAnalysisStudyConfigurator>,
+    model: NodalAnalysisModel, 
+}
+impl NodalAnalysisStudyBuilder
+{
+    pub fn new(study_type: &str) -> anyhow::Result<NodalAnalysisStudyBuilder>
+    {
+        Ok(
+            NodalAnalysisStudyBuilder 
+            {
+                configurator: HashMap::new(),
+                model: NodalAnalysisModel { 
+                    model_type: 
+                    study_type.to_string(), 
+                    nodes: 0, 
+                    configuration: HashMap::new(),
+                    elements: vec![],
+                },
+            }
+        )
     }
 }
 

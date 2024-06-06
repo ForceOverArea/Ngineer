@@ -2,7 +2,7 @@ pub mod element;
 pub mod node;
 
 /// Std modules
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr, usize};
 
 /// 3rd party modules
 use serde::de::{Deserialize, IntoDeserializer, value};
@@ -34,7 +34,7 @@ pub struct NodalAnalysisElement
 #[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
 pub struct NodalMetadata
 {
-    node: usize,
+    potential: Vec<f64>,
     is_locked: bool,
     metadata: HashMap<String, f64>,
 }
@@ -45,8 +45,13 @@ pub struct NodalAnalysisModel
 {
     model_type: String,
     nodes: usize,
-    configuration: Vec<NodalMetadata>,
+    configuration: HashMap<usize, NodalMetadata>,
     elements: Vec<NodalAnalysisElement>,
+}
+impl NodalAnalysisModel
+{
+
+
 }
 impl FromStr for NodalAnalysisModel
 {

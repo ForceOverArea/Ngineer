@@ -1,8 +1,12 @@
-use neapolitan::{get_node_potential, set_node_potential};
+use std::rc::Rc;
+
+use gmatlib::col_vec;
+use rand::random;
+
+use neapolitan::{get_node_potential, set_node_potential, Matrix};
 use neapolitan::ssdc_circuits::{resistor, voltage_source, SSDCCircuit};
 use neapolitan::modelling::node::GenericNode;
-use rand::random;
-use std::rc::Rc;
+
 
 #[test]
 fn architecture_test()
@@ -16,10 +20,10 @@ fn architecture_test()
     let mut circuit_builder = circuit.configure();
     
     //                          Element         Input   Output  Voltage/Resistance
-    circuit_builder.add_element(voltage_source, 0,      1,      3.0).expect("Failed to make voltage source"); 
-    circuit_builder.add_element(resistor,       1,      2,      2.0).expect("Failed to make 2 ohm resistor");
-    circuit_builder.add_element(resistor,       2,      3,      1.0).expect("Failed to make first 1 ohm resistor");
-    circuit_builder.add_element(resistor,       3,      0,      1.0).expect("Failed to make second 1 ohm resistor");
+    circuit_builder.add_element(voltage_source, 0,      1,      col_vec![3.0]).expect("Failed to make voltage source"); 
+    circuit_builder.add_element(resistor,       1,      2,      col_vec![2.0]).expect("Failed to make 2 ohm resistor");
+    circuit_builder.add_element(resistor,       2,      3,      col_vec![1.0]).expect("Failed to make first 1 ohm resistor");
+    circuit_builder.add_element(resistor,       3,      0,      col_vec![1.0]).expect("Failed to make second 1 ohm resistor");
 
     // Solve the model
     let _soln = circuit_builder.solve().expect("Failed to solve model");
