@@ -29,7 +29,7 @@ pub fn observe_flux(
     let sub_ref;
 
     // Adjust potential of submissive node and drop mutable ref
-    if drives_output 
+    if drives_output
     {
         let mut sub = onode_ref.try_borrow_mut()?;
         let dom = inode_ref.try_borrow()?;
@@ -52,8 +52,12 @@ pub fn observe_flux(
         sub_ref = inode_ref;
     }
 
-    let discrepancy = sub_ref.try_borrow()?.get_flux_discrepancy()?;
-    Ok(discrepancy * -1.0)
+    let mut discrepancy = sub_ref.try_borrow()?
+        .get_flux_discrepancy()?;
+
+    discrepancy.inplace_scale(-1.0);
+
+    Ok(discrepancy)
 }
 
 pub fn constant_flux(

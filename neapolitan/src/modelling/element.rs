@@ -17,7 +17,7 @@ use crate::modelling::node::GenericNode;
 /// # Argument Types:
 /// The type `T` is left as a parameter to allow authors to control what type of data is 
 /// used in deriving the `gain` value as well as additional metadata used in flux calculations. For example, in 
-/// steady-state circuitry, `T` is simply `f64` to represent a real value for the voltage,
+/// steady-state DC circuitry, `T` is simply `f64` to represent a real value for the voltage,
 /// resistance, or current of the element being created. In AC circuitry problems,
 /// however, this type would be `(f64, f64)` to represent the real and imaginary components of
 /// current at that location.
@@ -98,15 +98,15 @@ impl GenericElement
     /// ```
     /// use std::rc::{Rc, Weak};
     /// use std::cell::RefCell;
-    /// use neapolitan::{GenericElement, GenericNode, NoMetadata};
+    /// use neapolitan::modelling::{GenericElement, GenericNode};
     /// use neapolitan::flux_formulas::constant_flux;
     /// use neapolitan::errors::DroppedNodeError;
     /// 
     /// pub fn current_source(
-    ///     input: Weak<RefCell<GenericNode<NoMetadata>>>, 
-    ///     output: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    ///     input: Weak<RefCell<GenericNode>>, 
+    ///     output: Weak<RefCell<GenericNode>>, 
     ///     current: f64
-    /// ) -> Result<Rc<GenericElement<NoMetadata>>, Box<dyn std::error::Error>>
+    /// ) -> Result<Rc<GenericElement>, Box<dyn std::error::Error>>
     /// {
     ///     Ok(GenericElement::try_new(
     ///         vec![current],
@@ -166,7 +166,8 @@ impl GenericElement
     /// # Example
     /// ```
     /// use std::rc::Rc;
-    /// use neapolitan::{GenericElement, GenericNode, set_node_potential};
+    /// use neapolitan::set_node_potential;
+    /// use neapolitan::modelling::{GenericElement, GenericNode};
     /// use neapolitan::ssdc_circuits::resistor;
     /// 
     /// let a = GenericNode::new();

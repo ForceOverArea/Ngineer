@@ -7,6 +7,10 @@ use std::{collections::HashMap, str::FromStr};
 /// 3rd party modules
 use serde::de::{Deserialize, IntoDeserializer, value};
 
+/// Local modules
+pub use element::GenericElement;
+pub use node::GenericNode;
+
 /// Represents an element in a nodal analysis problem.
 /// 
 /// # Fields:

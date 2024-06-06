@@ -227,9 +227,10 @@ impl <T> NodalAnalysisStudy<T, Build>
 /// # Example
 /// ```
 /// use std::rc::Rc;
-/// use neapolitan::{GenericNode, is_locked, NoMetadata};
+/// use neapolitan::is_locked;
+/// use neapolitan::modelling::GenericNode;
 /// 
-/// let my_node_ref = GenericNode::<NoMetadata>::new();
+/// let my_node_ref = GenericNode::new();
 /// 
 /// assert!(
 ///     !(is_locked(&Rc::downgrade(&my_node_ref)).unwrap())
