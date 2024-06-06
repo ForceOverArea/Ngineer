@@ -2,15 +2,14 @@ use gmatlib::Matrix;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::GenericNode;
+use crate::modelling::node::GenericNode;
 
-pub fn normal_flux<M>(
-    inode_ref: Rc<RefCell<GenericNode<M>>>, 
-    onode_ref: Rc<RefCell<GenericNode<M>>>, 
+pub fn normal_flux(
+    inode_ref: Rc<RefCell<GenericNode>>, 
+    onode_ref: Rc<RefCell<GenericNode>>, 
     gain: &Matrix<f64>, 
     _drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
-where M: Default
 {
     let onode = onode_ref.try_borrow()?;
     let inode = inode_ref.try_borrow()?;
@@ -20,13 +19,12 @@ where M: Default
     Ok(deltas)
 }
 
-pub fn observe_flux<M>(
-    inode_ref: Rc<RefCell<GenericNode<M>>>, 
-    onode_ref: Rc<RefCell<GenericNode<M>>>, 
+pub fn observe_flux(
+    inode_ref: Rc<RefCell<GenericNode>>, 
+    onode_ref: Rc<RefCell<GenericNode>>, 
     delta: &Matrix<f64>, 
     drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
-where M: Default
 {
     let sub_ref;
 
@@ -58,13 +56,12 @@ where M: Default
     Ok(discrepancy * -1.0)
 }
 
-pub fn constant_flux<M>(
-    _inode_ref: Rc<RefCell<GenericNode<M>>>, 
-    _onode_ref: Rc<RefCell<GenericNode<M>>>, 
+pub fn constant_flux(
+    _inode_ref: Rc<RefCell<GenericNode>>, 
+    _onode_ref: Rc<RefCell<GenericNode>>, 
     flux: &Matrix<f64>, 
     _drives_output: bool
 ) -> anyhow::Result<Matrix<f64>>
-where M: Default
 {
     Ok(flux.clone())
 }

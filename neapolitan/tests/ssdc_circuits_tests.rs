@@ -1,4 +1,6 @@
-use neapolitan::{get_node_potential, set_node_potential, ssdc_circuits::{resistor, voltage_source, SSDCCircuit}, GenericNode};
+use neapolitan::{get_node_potential, set_node_potential};
+use neapolitan::ssdc_circuits::{resistor, voltage_source, SSDCCircuit};
+use neapolitan::modelling::node::GenericNode;
 use rand::random;
 use std::rc::Rc;
 

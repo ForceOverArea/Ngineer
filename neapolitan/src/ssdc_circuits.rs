@@ -7,16 +7,16 @@ use gmatlib::{col_vec, Matrix};
 
 // Local modules
 use crate::errors::ElementCreationError;
-use crate::{flux_formulas::*, get_node_potential, is_locked, lock_node, set_node_potential, Configure, NoMetadata};
+use crate::{flux_formulas::*, get_node_potential, is_locked, lock_node, set_node_potential, Configure};
 use crate::{GenericElement, GenericNode, NodalAnalysisStudy};
 
-pub type SSDCCircuit = NodalAnalysisStudy<f64, NoMetadata, Configure>;
+pub type SSDCCircuit = NodalAnalysisStudy<f64, Configure>;
 
 pub fn resistor(
-    input: Weak<RefCell<GenericNode<NoMetadata>>>, 
-    output: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    input: Weak<RefCell<GenericNode>>, 
+    output: Weak<RefCell<GenericNode>>, 
     resistance: f64
-) -> anyhow::Result<Rc<GenericElement<NoMetadata>>>
+) -> anyhow::Result<Rc<GenericElement>>
 {
     GenericElement::try_new(
         vec![1.0 / resistance], // Conductance (gain) is reciprocal of resistance in ohms
@@ -28,10 +28,10 @@ pub fn resistor(
 }
 
 pub fn voltage_source(
-    input: Weak<RefCell<GenericNode<NoMetadata>>>, 
-    output: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    input: Weak<RefCell<GenericNode>>, 
+    output: Weak<RefCell<GenericNode>>, 
     voltage: f64
-) -> anyhow::Result<Rc<GenericElement<NoMetadata>>>
+) -> anyhow::Result<Rc<GenericElement>>
 {
     // Abort if we cannot remove a DOF from the problem
     if is_locked(&output)? && is_locked(&input)?
@@ -71,10 +71,10 @@ pub fn voltage_source(
 }
 
 pub fn current_source(
-    input: Weak<RefCell<GenericNode<NoMetadata>>>, 
-    output: Weak<RefCell<GenericNode<NoMetadata>>>, 
+    input: Weak<RefCell<GenericNode>>, 
+    output: Weak<RefCell<GenericNode>>, 
     current: f64
-) -> anyhow::Result<Rc<GenericElement<NoMetadata>>>
+) -> anyhow::Result<Rc<GenericElement>>
 {
     GenericElement::try_new(
         vec![current],
