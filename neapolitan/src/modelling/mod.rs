@@ -20,10 +20,10 @@ pub use node::GenericNode;
 #[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
 pub struct NodalAnalysisElement
 {
-    element_type: String, 
-    input: usize,
-    output: usize,
-    gain: Vec<f64>,
+    pub (in crate) element_type: String, 
+    pub (in crate) input: usize,
+    pub (in crate) output: usize,
+    pub (in crate) gain: Vec<f64>,
 }
 
 /// Represents nodal metadata that should be set during the model's configuration stage
@@ -34,25 +34,21 @@ pub struct NodalAnalysisElement
 #[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
 pub struct NodalMetadata
 {
-    potential: Vec<f64>,
-    is_locked: bool,
-    metadata: HashMap<String, f64>,
+    pub (in crate) potential: Vec<f64>,
+    pub (in crate) is_locked: bool,
+    pub (in crate) metadata: Option<HashMap<String, f64>>,
 }
 
 /// Represents an entire nodal analysis problem
 #[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
 pub struct NodalAnalysisModel 
 {
-    model_type: String,
-    nodes: usize,
-    configuration: HashMap<usize, NodalMetadata>,
-    elements: Vec<NodalAnalysisElement>,
+    pub (in crate) model_type: String,
+    pub (in crate) nodes: usize,
+    pub (in crate) configuration: HashMap<usize, NodalMetadata>,
+    pub (in crate) elements: Vec<NodalAnalysisElement>,
 }
-impl NodalAnalysisModel
-{
-
-
-}
+impl NodalAnalysisModel {}
 impl FromStr for NodalAnalysisModel
 {
     type Err = value::Error;

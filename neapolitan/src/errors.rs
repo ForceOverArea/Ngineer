@@ -33,3 +33,10 @@ pub enum NodalAnalysisConfigurationError
     #[error("a configuration with this name was already added to this model builder")]
     ConfigurationNameCollision,
 }
+
+#[derive(Debug, Error)]
+pub enum NodalAnalysisModellingError
+{
+    #[error("could not attach element to one or more of the given nodes because the node(s) did not exist in the model")]
+    NodeDoesNotExist
+}

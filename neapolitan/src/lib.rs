@@ -1,4 +1,3 @@
-
 pub mod modelling;
 /// Contains error types for the various errors that 
 /// may be thrown in the `neapolitan` crate.
@@ -6,7 +5,6 @@ pub mod errors;
 /// Contains functions used by the nodal analysis 
 /// elements to calculate elemental flux between nodes.
 pub mod flux_formulas;
-
 /// Contains constructor functions for elements useful in
 /// modelling steady-state DC circuits.
 pub mod ssdc_circuits;
@@ -17,7 +15,7 @@ use std::{fmt::Debug, marker::PhantomData};
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 
-use modelling::{element, NodalAnalysisModel};
+use modelling::{element, NodalAnalysisElement, NodalAnalysisModel, NodalMetadata};
 // 3rd party modules
 use serde::{Deserialize, Serialize};
 use geqslib::newton::multivariate_newton_raphson;
@@ -35,7 +33,7 @@ use geqslib::newton::multivariate_newton_raphson;
 pub type Matrix<T> = gmatlib::Matrix<T>;
 
 // Local modules
-use errors::{DroppedNodeError, ElementCreationError, NodalAnalysisConfigurationError, EquationGenerationError};
+use errors::{DroppedNodeError, ElementCreationError, EquationGenerationError, NodalAnalysisConfigurationError, NodalAnalysisModellingError};
 use modelling::element::{ElementConstructor, GenericElement};
 use modelling::node::GenericNode;
 
@@ -140,14 +138,45 @@ impl NodalAnalysisStudyBuilder
         Ok(NodalAnalysisStudyBuilder 
         {
             configurator: HashMap::new(),
-            model: NodalAnalysisModel { 
-                model_type: 
-                study_type.to_string(), 
-                nodes: 0, 
+            model: NodalAnalysisModel
+            {
+                model_type: study_type.to_string(),
+                nodes: 0,
                 configuration: HashMap::new(),
                 elements: vec![],
             },
         })
+    }
+
+    pub fn add_nodes(mut self, n: usize) -> NodalAnalysisStudyBuilder
+    {
+        self.model.nodes += n;
+        self
+    }
+
+    pub fn configure_node(mut self, node: usize, potential: Vec<f64>, is_locked: bool, metadata: Option<HashMap<String, f64>>) -> NodalAnalysisStudyBuilder
+    {
+        self.model.configuration.insert(node, NodalMetadata { potential, is_locked, metadata });
+        self
+    }
+
+    pub fn add_element(mut self, element: &str, input: usize, output: usize, gain: Vec<f64>) -> anyhow::Result<NodalAnalysisStudyBuilder>
+    {
+        if input >= self.model.nodes || output >= self.model.nodes
+        { 
+            return Err(NodalAnalysisModellingError::NodeDoesNotExist.into());
+        };
+        self.model.elements.push(
+            NodalAnalysisElement { element_type: element.to_string(), input, output, gain, }
+        );
+        Ok(self)
+    }    
+
+    pub fn run_study(self) -> anyhow::Result<NodalAnalysisStudyResult>
+    {
+        let nodes = vec![GenericNode ; ];
+
+
     }
 }
 
