@@ -35,7 +35,7 @@ use geqslib::newton::multivariate_newton_raphson;
 pub type Matrix<T> = gmatlib::Matrix<T>;
 
 // Local modules
-use errors::{DroppedNodeError, EquationGenerationError};
+use errors::{DroppedNodeError, ElementCreationError, NodalAnalysisConfigurationError, EquationGenerationError};
 use modelling::element::{ElementConstructor, GenericElement};
 use modelling::node::GenericNode;
 
@@ -66,7 +66,7 @@ pub struct NodalAnalysisStudyResult
 #[derive(Clone, Debug, PartialEq)]
 pub struct NodalAnalysisStudyConfigurator
 {
-    parent: &NodalAnalysisStudyBuilder,
+    parent: &'static NodalAnalysisStudyBuilder,
     dimension: usize,
     elements: HashMap<String, ElementConstructor>,
 }
@@ -79,10 +79,11 @@ impl NodalAnalysisStudyConfigurator
     /// ```
     /// 
     /// ```
-    pub fn new(dimension: usize) -> NodalAnalysisStudyConfigurator
+    pub fn new(dimension: usize, parent: &NodalAnalysisStudyBuilder) -> NodalAnalysisStudyConfigurator
     {
         NodalAnalysisStudyConfigurator
         {
+            parent,
             dimension,
             elements: HashMap::new(),
         }
@@ -94,46 +95,59 @@ impl NodalAnalysisStudyConfigurator
     /// # Example
     /// ```
     /// 
-    /// ``` 
-    pub fn add_element_type(mut self, name: &str, element_type: ElementConstructor) -> NodalAnalysisStudyConfigurator
+    /// ```
+    pub fn add_element_type(mut self, name: &str, element_type: ElementConstructor) -> anyhow::Result<NodalAnalysisStudyConfigurator>
     {
-        self.elements.insert(
-            name.to_string(), 
-            element_type
-        );
-
-        self
+        if let None = self.elements.insert(name.to_string(), element_type)
+        {
+            Ok(self)
+        }
+        else
+        {
+            Err(NodalAnalysisConfigurationError::ElementTypeNameCollision.into())
+        }
     }
 
-    pub fn configure(self) -> NodalAnalysisStudyBuilder
+    /// Adds the information to the builder's list of configurations 
+    /// 
+    /// # Example
+    /// ```
+    /// 
+    /// ```
+    pub fn configure(mut self, configuration_name: &str) -> anyhow::Result<()>
     {
-
+        if let None = self.parent.configurator.insert(configuration_name.to_string(), self)
+        {
+            Ok(())
+        }
+        else
+        {
+            Err(NodalAnalysisConfigurationError::ConfigurationNameCollision.into())
+        }
     }
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct NodalAnalysisStudyBuilder
 {
-    configurator: HashMap<String, NodalAnalysisStudyConfigurator>,
-    model: NodalAnalysisModel, 
+    pub (in crate) configurator: HashMap<String, NodalAnalysisStudyConfigurator>,
+    pub (in crate) model: NodalAnalysisModel, 
 }
 impl NodalAnalysisStudyBuilder
 {
     pub fn new(study_type: &str) -> anyhow::Result<NodalAnalysisStudyBuilder>
     {
-        Ok(
-            NodalAnalysisStudyBuilder 
-            {
-                configurator: HashMap::new(),
-                model: NodalAnalysisModel { 
-                    model_type: 
-                    study_type.to_string(), 
-                    nodes: 0, 
-                    configuration: HashMap::new(),
-                    elements: vec![],
-                },
-            }
-        )
+        Ok(NodalAnalysisStudyBuilder 
+        {
+            configurator: HashMap::new(),
+            model: NodalAnalysisModel { 
+                model_type: 
+                study_type.to_string(), 
+                nodes: 0, 
+                configuration: HashMap::new(),
+                elements: vec![],
+            },
+        })
     }
 }
 

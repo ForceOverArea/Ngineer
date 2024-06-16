@@ -24,3 +24,12 @@ pub enum FluxCalculationError
 #[derive(Debug, Error)]
 #[error("node reference was already dropped before attempting to borrow from refcell")]
 pub struct DroppedNodeError;
+
+#[derive(Debug, Error)]
+pub enum NodalAnalysisConfigurationError
+{
+    #[error("element type with this name was already created for this configurator object")]
+    ElementTypeNameCollision,
+    #[error("a configuration with this name was already added to this model builder")]
+    ConfigurationNameCollision,
+}
