@@ -155,8 +155,6 @@ where
         } 
     }
 
-    println!("{jacobian}");
-
     jacobian.try_inplace_invert()?;
 
     // Calculate current error
