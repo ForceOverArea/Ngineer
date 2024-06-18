@@ -290,30 +290,36 @@ impl NodalAnalysisStudyBuilder
 
         let soln = multivariate_newton_raphson(partials, &mut guess, 0.0001, 100)?;
 
-        // Step 5 - gather results
-        let mut result = NodalAnalysisStudyResult { nodes: HashMap::new(), elements: HashMap::new() };
-        
-        for (ComponentIndex { node, component }, value) in soln
+        // Step 5 - Set model state to solution
+        for (idx, component) in soln
         {
-            if let Some(node_obj) = result.nodes.get_mut(node)
-            {
-                node_obj[*component as usize] = *value;
-            }
-            else
-            {
-                let mut potential = vec![0.0; n];
-                potential[*component as usize] = *value;
-                result.nodes.insert(*node, potential);
-            }
+            let mut node = nodes[idx.node as usize].try_borrow_mut()?;
+            node.potential[(idx.component as usize, 0)] = *component;
         }
+
+        // Step 6 - gather results
+        let mut result = NodalAnalysisStudyResult 
+        { 
+            nodes: HashMap::new(), 
+            elements: HashMap::new() 
+        };
         
-        for (i, elem) in elements.iter().enumerate()
+        for (idx, elem) in elements.iter().enumerate()
         {
             result.elements.insert(
-                i as u32, 
-                Vec::from(elem.get_flux()?) 
+                idx as u32,
+                elem.get_flux()?.into()
             );
-        } 
+        }
+
+        // Get all nodal potential values for solution
+        for (idx, node) in nodes.iter().enumerate()
+        {
+            result.nodes.insert(
+                idx as u32, 
+                node.try_borrow()?.potential.clone().into(),
+            );
+        }
 
         Ok(result)
     }
