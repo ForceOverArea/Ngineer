@@ -10,10 +10,10 @@ use crate::errors::ElementCreationError;
 use crate::{flux_formulas::*, get_node_potential, is_locked, lock_node, set_node_potential};
 use crate::{GenericElement, GenericNode};
 
-pub const SSDC_CIRCUIT: &'static str = "ssdc_circuit";
-pub const RESISTOR: &'static str = "resistor";
-pub const VOLTAGE_SOURCE: &'static str = "voltage_source";
-pub const CURRENT_SOURCE: &'static str = "current_source";
+pub const SSDC_CIRCUIT: &str = "ssdc_circuit";
+pub const RESISTOR: &str = "resistor";
+pub const VOLTAGE_SOURCE: &str = "voltage_source";
+pub const CURRENT_SOURCE: &str = "current_source";
 
 pub fn resistor(
     input: Weak<RefCell<GenericNode>>, 

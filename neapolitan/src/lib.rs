@@ -112,7 +112,7 @@ impl NodalAnalysisStudyConfigurator
     /// ```
     pub fn add_element_type(mut self, name: &'static str, element_type: ElementConstructor) -> anyhow::Result<NodalAnalysisStudyConfigurator>
     {
-        if let None = self.elements.insert(name, element_type)
+        if self.elements.insert(name, element_type).is_none()
         {
             Ok(self)
         }
@@ -247,7 +247,7 @@ impl NodalAnalysisStudyBuilder
         for element_data in &self.model.elements
         {
             let NodalAnalysisElement { element_type, input, output, gain } = element_data;
-            let constructor = self.get_element_constructor(&element_type);
+            let constructor = self.get_element_constructor(element_type);
             elements.push(constructor(
                 Rc::downgrade(&nodes[*input]), 
                 Rc::downgrade(&nodes[*output]), 
