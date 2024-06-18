@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.82"
-geqslib = { path = "../geqslib" }
-gmatlib = { path = "../gmatlib" }
+geqslib = { version = "0.1.4", path = "../geqslib" }
+gmatlib = { version = "0.2.0", path = "../gmatlib" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.117"
 thiserror = "1.0.60"
