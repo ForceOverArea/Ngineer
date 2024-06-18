@@ -37,6 +37,7 @@ pub type Matrix<T> = gmatlib::Matrix<T>;
 use errors::{DroppedNodeError, NodalAnalysisConfigurationError, NodalAnalysisModellingError};
 use modelling::element::{ElementConstructor, GenericElement};
 use modelling::node::GenericNode;
+use serde_json::to_string_pretty;
 use ssdc_circuits::{current_source, resistor, voltage_source};
 
 /// The default settings used by the neapolitan solver to build models
@@ -201,6 +202,17 @@ impl NodalAnalysisStudyBuilder
         );
         Ok(self)
     }    
+
+    pub fn save_model(self, model_rep: &mut String) -> anyhow::Result<NodalAnalysisStudyBuilder>
+    {
+        let res = to_string_pretty(&self.model);
+        if let Err(e) = res
+        {
+            return Err(e.into());
+        }
+        *model_rep = res.unwrap();
+        Ok(self)
+    }
 
     pub fn run_study(self) -> anyhow::Result<NodalAnalysisStudyResult>
     {
