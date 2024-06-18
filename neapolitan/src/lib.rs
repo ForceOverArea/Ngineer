@@ -67,7 +67,7 @@ struct ComponentIndex
 pub struct NodalAnalysisStudyResult
 {
     nodes: HashMap<u32, Vec<f64>>,
-    elements: HashMap<u32, Vec<f64>>,
+    elements: HashMap<String, Vec<f64>>,
 }
 
 /// A builder struct for building a customized instance of 
@@ -307,7 +307,7 @@ impl NodalAnalysisStudyBuilder
         for (idx, elem) in elements.iter().enumerate()
         {
             result.elements.insert(
-                idx as u32,
+                format!("{}.{idx}", self.model.elements[idx].element_type),
                 elem.get_flux()?.into()
             );
         }
