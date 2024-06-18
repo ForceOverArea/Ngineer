@@ -10,7 +10,7 @@ use neapolitan::modelling::node::GenericNode;
 #[test]
 fn architecture_test()
 {
-    let builder = NodalAnalysisStudyBuilder::new(SSDC_CIRCUIT, None)
+    let builder = NodalAnalysisStudyBuilder::new(SSDC_CIRCUIT.to_string(), None)
         .expect("failed to create model builder object");
 
     // Add nodes to system

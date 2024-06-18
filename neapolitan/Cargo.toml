@@ -16,6 +16,9 @@ thiserror = "1.0.60"
 [dev-dependencies]
 rand = "0.8.5"
 
+[[bin]]
+name = "neapolitan"
+path = "src/main.rs"
 
 [[test]]
 name = "ssdc_circuits_tests"

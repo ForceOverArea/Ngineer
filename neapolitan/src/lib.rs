@@ -40,10 +40,10 @@ use modelling::node::GenericNode;
 use ssdc_circuits::{current_source, resistor, voltage_source};
 
 /// The default settings used by the neapolitan solver to build models
-pub fn default_study_builder_config() -> HashMap<&'static str, NodalAnalysisStudyConfigurator> 
+pub fn default_study_builder_config() -> HashMap<String, NodalAnalysisStudyConfigurator> 
 {
     HashMap::from([
-        ("ssdc_circuit", NodalAnalysisStudyConfigurator 
+        ("ssdc_circuit".to_string(), NodalAnalysisStudyConfigurator 
         { 
             dimension: 1, 
             elements: HashMap::from([
@@ -125,12 +125,12 @@ impl NodalAnalysisStudyConfigurator
 #[derive(Clone, Debug, PartialEq)]
 pub struct NodalAnalysisStudyBuilder
 {
-    pub (in crate) configurator: HashMap<&'static str, NodalAnalysisStudyConfigurator>,
+    pub (in crate) configurator: HashMap<String, NodalAnalysisStudyConfigurator>,
     pub (in crate) model: NodalAnalysisModel, 
 }
 impl NodalAnalysisStudyBuilder
 {
-    pub fn new(study_type: &'static str, configurator: Option<HashMap<&'static str, NodalAnalysisStudyConfigurator>>) -> anyhow::Result<NodalAnalysisStudyBuilder>
+    pub fn new(study_type: String, configurator: Option<HashMap<String, NodalAnalysisStudyConfigurator>>) -> anyhow::Result<NodalAnalysisStudyBuilder>
     {
         let config_map = match configurator
         {
@@ -138,7 +138,7 @@ impl NodalAnalysisStudyBuilder
             Some(config) => config,
         };
 
-        if !config_map.contains_key(study_type)
+        if !config_map.contains_key(&study_type)
         {
             return Err(NodalAnalysisModellingError::ModelTypeNotFound.into());
         }
@@ -148,12 +148,21 @@ impl NodalAnalysisStudyBuilder
             configurator: config_map,
             model: NodalAnalysisModel
             {
-                model_type: study_type,
+                model_type: study_type.to_string(),
                 nodes: 0,
                 configuration: HashMap::new(),
                 elements: vec![],
             },
         })
+    }
+
+    pub fn from_model_with_default_config(model: NodalAnalysisModel) -> NodalAnalysisStudyBuilder
+    {
+        NodalAnalysisStudyBuilder
+        {
+            configurator: default_study_builder_config(),
+            model,
+        }
     }
 
     fn get_element_constructor(&self, elem: &str) -> ElementConstructor
