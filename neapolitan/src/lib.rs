@@ -181,7 +181,6 @@ impl NodalAnalysisStudyBuilder
     pub fn add_nodes(mut self, n: usize) -> NodalAnalysisStudyBuilder
     {
         self.model.nodes += n;
-        // println!("{}", self.model.nodes);
         self
     }
 

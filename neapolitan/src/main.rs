@@ -1,7 +1,7 @@
 use std::env::args;
 use std::fs::{read_to_string, write};
 use std::process;
-use serde_json::{from_str, to_string};
+use serde_json::{from_str, to_string_pretty};
 use neapolitan::NodalAnalysisStudyBuilder;
 
 fn main()
@@ -41,7 +41,7 @@ fn main()
         }
     };
 
-    let solution_json = match to_string(&solution)
+    let solution_json = match to_string_pretty(&solution)
     {
         Ok(o) => o,
         Err(e) => 
