@@ -27,7 +27,7 @@ use crate::modelling::node::GenericNode;
 /// be passed on to the created element, but may be operated on prior to element creation. 
 /// E.g. `voltage_source` sets a driven node's voltage to the driving node's potential +/- the
 /// potential difference specified prior to connecting the element to the network. 
-pub type ElementConstructor = fn (Weak<RefCell<GenericNode>>, Weak<RefCell<GenericNode>>, Matrix<f64>) -> anyhow::Result<Rc<GenericElement>>;
+pub type ElementConstructor = fn (Weak<RefCell<GenericNode>>, Weak<RefCell<GenericNode>>, Vec<f64>) -> anyhow::Result<Rc<GenericElement>>;
 
 /// The function signature used to calculate flux between nodes.
 /// 
@@ -175,7 +175,7 @@ impl GenericElement
     /// 
     /// set_node_potential(&Rc::downgrade(&a), vec![3.0]).unwrap();
     /// 
-    /// let elem = resistor(Rc::downgrade(&a), Rc::downgrade(&b), 2.0).unwrap();
+    /// let elem = resistor(Rc::downgrade(&a), Rc::downgrade(&b), vec![2.0]).unwrap();
     /// let flux = Vec::from(
     ///     elem.get_flux().unwrap()
     /// );

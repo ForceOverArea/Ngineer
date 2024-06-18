@@ -7,19 +7,22 @@ use gmatlib::{col_vec, Matrix};
 
 // Local modules
 use crate::errors::ElementCreationError;
-use crate::{flux_formulas::*, get_node_potential, is_locked, lock_node, set_node_potential, Configure};
-use crate::{GenericElement, GenericNode, NodalAnalysisStudy};
+use crate::{flux_formulas::*, get_node_potential, is_locked, lock_node, set_node_potential};
+use crate::{GenericElement, GenericNode};
 
-pub type SSDCCircuit = NodalAnalysisStudy<f64, Configure>;
+pub const SSDC_CIRCUIT: &'static str = "ssdc_circuit";
+pub const RESISTOR: &'static str = "resistor";
+pub const VOLTAGE_SOURCE: &'static str = "voltage_source";
+pub const CURRENT_SOURCE: &'static str = "current_source";
 
 pub fn resistor(
     input: Weak<RefCell<GenericNode>>, 
     output: Weak<RefCell<GenericNode>>, 
-    resistance: f64
+    resistance: Vec<f64>,
 ) -> anyhow::Result<Rc<GenericElement>>
 {
     GenericElement::try_new(
-        vec![1.0 / resistance], // Conductance (gain) is reciprocal of resistance in ohms
+        vec![1.0 / resistance[0]],  // Conductance (gain) is reciprocal of resistance in ohms
         input, output,              // Input and output nodes
         normal_flux,                // Flux calculation
         false,                      // Does not drive a nodal potential
@@ -30,7 +33,7 @@ pub fn resistor(
 pub fn voltage_source(
     input: Weak<RefCell<GenericNode>>, 
     output: Weak<RefCell<GenericNode>>, 
-    voltage: f64
+    voltage: Vec<f64>,
 ) -> anyhow::Result<Rc<GenericElement>>
 {
     // Abort if we cannot remove a DOF from the problem
@@ -46,12 +49,12 @@ pub fn voltage_source(
     if drives_output
     {
         lock_node(&output)?;
-        set_node_potential(&output, (get_node_potential(&input)? + col_vec![voltage]).into())?;
+        set_node_potential(&output, (get_node_potential(&input)? + col_vec![voltage[0]]).into())?;
     } 
     else // driving input node:
     {
         lock_node(&input)?;
-        set_node_potential(&input, (get_node_potential(&output)? + col_vec![voltage]).into())?;
+        set_node_potential(&input, (get_node_potential(&output)? + col_vec![voltage[0]]).into())?;
     }
 
     // If we're driving the output node, we need to make the input node aware of this element.
@@ -61,7 +64,7 @@ pub fn voltage_source(
     let connect_output_node = !connect_input_node;
     
     GenericElement::try_new(
-        vec![voltage],
+        voltage,
         input, output,
         observe_flux,
         drives_output,
@@ -73,11 +76,11 @@ pub fn voltage_source(
 pub fn current_source(
     input: Weak<RefCell<GenericNode>>, 
     output: Weak<RefCell<GenericNode>>, 
-    current: f64
+    current: Vec<f64>,
 ) -> anyhow::Result<Rc<GenericElement>>
 {
     GenericElement::try_new(
-        vec![current],
+        current,
         input, output,
         constant_flux,
         false,

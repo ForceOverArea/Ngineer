@@ -11,13 +11,14 @@ pub mod ssdc_circuits;
 
 // Standard modules
 use std::collections::HashMap;
-use std::{fmt::Debug, marker::PhantomData};
+use std::fmt::Debug;
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 
-use modelling::{element, NodalAnalysisElement, NodalAnalysisModel, NodalMetadata};
+use anyhow::Ok;
+use modelling::{NodalAnalysisElement, NodalAnalysisModel, NodalMetadata};
 // 3rd party modules
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use geqslib::newton::multivariate_newton_raphson;
 
 /// This is a re-export of a `gmatlib::Matrix<T>`, a type for representing numerical 
@@ -33,10 +34,26 @@ use geqslib::newton::multivariate_newton_raphson;
 pub type Matrix<T> = gmatlib::Matrix<T>;
 
 // Local modules
-use errors::{DroppedNodeError, ElementCreationError, EquationGenerationError, NodalAnalysisConfigurationError, NodalAnalysisModellingError};
+use errors::{DroppedNodeError, NodalAnalysisConfigurationError, NodalAnalysisModellingError};
 use modelling::element::{ElementConstructor, GenericElement};
 use modelling::node::GenericNode;
+use ssdc_circuits::{current_source, resistor, voltage_source};
 
+/// The default settings used by the neapolitan solver to build models
+pub fn default_study_builder_config() -> HashMap<&'static str, NodalAnalysisStudyConfigurator> 
+{
+    HashMap::from([
+        ("ssdc_circuit", NodalAnalysisStudyConfigurator 
+        { 
+            dimension: 1, 
+            elements: HashMap::from([
+                ("resistor",        resistor        as ElementConstructor),
+                ("voltage_source",  voltage_source  as ElementConstructor),
+                ("current_source",  current_source  as ElementConstructor),
+            ])
+        })
+    ])
+}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd)]
 struct ComponentIndex
@@ -64,9 +81,8 @@ pub struct NodalAnalysisStudyResult
 #[derive(Clone, Debug, PartialEq)]
 pub struct NodalAnalysisStudyConfigurator
 {
-    parent: &'static NodalAnalysisStudyBuilder,
     dimension: usize,
-    elements: HashMap<String, ElementConstructor>,
+    elements: HashMap<&'static str, ElementConstructor>,
 }
 impl NodalAnalysisStudyConfigurator
 {
@@ -77,11 +93,10 @@ impl NodalAnalysisStudyConfigurator
     /// ```
     /// 
     /// ```
-    pub fn new(dimension: usize, parent: &NodalAnalysisStudyBuilder) -> NodalAnalysisStudyConfigurator
+    pub fn new(dimension: usize) -> NodalAnalysisStudyConfigurator
     {
         NodalAnalysisStudyConfigurator
         {
-            parent,
             dimension,
             elements: HashMap::new(),
         }
@@ -94,9 +109,9 @@ impl NodalAnalysisStudyConfigurator
     /// ```
     /// 
     /// ```
-    pub fn add_element_type(mut self, name: &str, element_type: ElementConstructor) -> anyhow::Result<NodalAnalysisStudyConfigurator>
+    pub fn add_element_type(mut self, name: &'static str, element_type: ElementConstructor) -> anyhow::Result<NodalAnalysisStudyConfigurator>
     {
-        if let None = self.elements.insert(name.to_string(), element_type)
+        if let None = self.elements.insert(name, element_type)
         {
             Ok(self)
         }
@@ -105,42 +120,35 @@ impl NodalAnalysisStudyConfigurator
             Err(NodalAnalysisConfigurationError::ElementTypeNameCollision.into())
         }
     }
-
-    /// Adds the information to the builder's list of configurations 
-    /// 
-    /// # Example
-    /// ```
-    /// 
-    /// ```
-    pub fn configure(mut self, configuration_name: &str) -> anyhow::Result<()>
-    {
-        if let None = self.parent.configurator.insert(configuration_name.to_string(), self)
-        {
-            Ok(())
-        }
-        else
-        {
-            Err(NodalAnalysisConfigurationError::ConfigurationNameCollision.into())
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct NodalAnalysisStudyBuilder
 {
-    pub (in crate) configurator: HashMap<String, NodalAnalysisStudyConfigurator>,
+    pub (in crate) configurator: HashMap<&'static str, NodalAnalysisStudyConfigurator>,
     pub (in crate) model: NodalAnalysisModel, 
 }
 impl NodalAnalysisStudyBuilder
 {
-    pub fn new(study_type: &str) -> anyhow::Result<NodalAnalysisStudyBuilder>
+    pub fn new(study_type: &'static str, configurator: Option<HashMap<&'static str, NodalAnalysisStudyConfigurator>>) -> anyhow::Result<NodalAnalysisStudyBuilder>
     {
+        let config_map = match configurator
+        {
+            None => default_study_builder_config(),
+            Some(config) => config,
+        };
+
+        if !config_map.contains_key(study_type)
+        {
+            return Err(NodalAnalysisModellingError::ModelTypeNotFound.into());
+        }
+
         Ok(NodalAnalysisStudyBuilder 
         {
-            configurator: HashMap::new(),
+            configurator: config_map,
             model: NodalAnalysisModel
             {
-                model_type: study_type.to_string(),
+                model_type: study_type,
                 nodes: 0,
                 configuration: HashMap::new(),
                 elements: vec![],
@@ -148,9 +156,22 @@ impl NodalAnalysisStudyBuilder
         })
     }
 
+    fn get_element_constructor(&self, elem: &str) -> ElementConstructor
+    {
+        let configurator = &self.configurator[&self.model.model_type];
+        configurator.elements[elem]
+    }
+
+    fn get_dimension(&self) -> usize
+    {
+        let configurator = &self.configurator[&self.model.model_type];
+        configurator.dimension
+    }
+
     pub fn add_nodes(mut self, n: usize) -> NodalAnalysisStudyBuilder
     {
         self.model.nodes += n;
+        // println!("{}", self.model.nodes);
         self
     }
 
@@ -163,7 +184,7 @@ impl NodalAnalysisStudyBuilder
     pub fn add_element(mut self, element: &str, input: usize, output: usize, gain: Vec<f64>) -> anyhow::Result<NodalAnalysisStudyBuilder>
     {
         if input >= self.model.nodes || output >= self.model.nodes
-        { 
+        {
             return Err(NodalAnalysisModellingError::NodeDoesNotExist.into());
         };
         self.model.elements.push(
@@ -174,9 +195,107 @@ impl NodalAnalysisStudyBuilder
 
     pub fn run_study(self) -> anyhow::Result<NodalAnalysisStudyResult>
     {
-        let nodes = vec![GenericNode ; ];
+        let n = self.get_dimension();
+        let mut nodes = vec![];
+        let mut elements = vec![];
 
+        // Step 1 - create/initialize nodes for model
+        for _ in 0..self.model.nodes
+        {
+            nodes.push(
+                Rc::new(RefCell::new(GenericNode 
+                {
+                    potential: Matrix::from_col_vec(vec![1.0; n]),
+                    inputs: vec![],
+                    outputs: vec![],
+                    is_locked: false,
+                    _metadata: None,
+                }))
+            );
+        }
 
+        // Step 2 - set nodal metadata if it is given
+        for (&i, node_data) in &self.model.configuration
+        {
+            let mut node = nodes[i].borrow_mut();
+            node.potential = Matrix::from_col_vec(node_data.potential.to_vec());
+            node.is_locked = node_data.is_locked;
+            node._metadata = node_data.metadata.clone();
+        }
+
+        // Step 3 - build model 
+        for element_data in &self.model.elements
+        {
+            let NodalAnalysisElement { element_type, input, output, gain } = element_data;
+            let constructor = self.get_element_constructor(&element_type);
+            elements.push(constructor(
+                Rc::downgrade(&nodes[*input]), 
+                Rc::downgrade(&nodes[*output]), 
+                gain.to_vec(),
+            )?);
+        }
+
+        // Step 4 - solve model
+        let mut partials = vec![];
+        let mut guess = HashMap::new();
+        for (node_idx, _) in nodes.iter().enumerate().filter(|(_, x)| !x.borrow().is_locked)
+        {
+            for comp_idx in 0..self.get_dimension()
+            {
+                let idx = ComponentIndex 
+                { 
+                    node: node_idx as u32, 
+                    component: comp_idx as u32 
+                };
+
+                let local_nodes = nodes.to_vec();
+
+                guess.insert(idx, 1.0);
+                partials.push(move |x: &HashMap<ComponentIndex, f64>| {
+                    for (&ComponentIndex { node, component }, &val) in x
+                    {
+                        local_nodes[node as usize]
+                            .try_borrow_mut()?
+                            .potential[(component as usize, 0)] = val;
+                    }
+
+                    let flux_discrepancy = local_nodes[node_idx]
+                        .try_borrow()?
+                        .get_flux_discrepancy()?;
+
+                    Ok(flux_discrepancy[(comp_idx, 0)])
+                });
+            }
+        }
+
+        let soln = multivariate_newton_raphson(partials, &mut guess, 0.0001, 100)?;
+
+        // Step 5 - gather results
+        let mut result = NodalAnalysisStudyResult { nodes: HashMap::new(), elements: HashMap::new() };
+        
+        for (ComponentIndex { node, component }, value) in soln
+        {
+            if let Some(node_obj) = result.nodes.get_mut(node)
+            {
+                node_obj[*component as usize] = *value;
+            }
+            else
+            {
+                let mut potential = vec![0.0; n];
+                potential[*component as usize] = *value;
+                result.nodes.insert(*node, potential);
+            }
+        }
+        
+        for (i, elem) in elements.iter().enumerate()
+        {
+            result.elements.insert(
+                i as u32, 
+                Vec::from(elem.get_flux()?) 
+            );
+        } 
+
+        Ok(result)
     }
 }
 

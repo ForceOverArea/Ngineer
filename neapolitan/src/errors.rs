@@ -38,5 +38,7 @@ pub enum NodalAnalysisConfigurationError
 pub enum NodalAnalysisModellingError
 {
     #[error("could not attach element to one or more of the given nodes because the node(s) did not exist in the model")]
-    NodeDoesNotExist
+    NodeDoesNotExist,
+    #[error("could not find desired model type in the given or default configurators")]
+    ModelTypeNotFound,
 }

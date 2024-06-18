@@ -43,7 +43,7 @@ pub struct NodalMetadata
 #[derive(Clone, Debug, serde::Deserialize, PartialEq, serde::Serialize)]
 pub struct NodalAnalysisModel 
 {
-    pub (in crate) model_type: String,
+    pub (in crate) model_type: &'static str,
     pub (in crate) nodes: usize,
     pub (in crate) configuration: HashMap<usize, NodalMetadata>,
     pub (in crate) elements: Vec<NodalAnalysisElement>,

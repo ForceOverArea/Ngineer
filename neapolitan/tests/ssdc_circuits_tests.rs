@@ -1,34 +1,37 @@
 use std::rc::Rc;
 
-use gmatlib::col_vec;
 use rand::random;
 
-use neapolitan::{get_node_potential, set_node_potential, Matrix};
-use neapolitan::ssdc_circuits::{resistor, voltage_source, SSDCCircuit};
+use neapolitan::{get_node_potential, set_node_potential, NodalAnalysisStudyBuilder};
+use neapolitan::ssdc_circuits::{resistor, RESISTOR, SSDC_CIRCUIT, VOLTAGE_SOURCE};
 use neapolitan::modelling::node::GenericNode;
 
 
 #[test]
 fn architecture_test()
 {
-    // Create a new NodalAnalysisStudy in the Configure state 
-    let mut circuit = SSDCCircuit::default();
-    circuit.add_nodes(4);
-    circuit.ground_node(0);
+    let builder = NodalAnalysisStudyBuilder::new(SSDC_CIRCUIT, None)
+        .expect("failed to create model builder object");
 
-    // Transition the study to the Builder state
-    let mut circuit_builder = circuit.configure();
-    
-    //                          Element         Input   Output  Voltage/Resistance
-    circuit_builder.add_element(voltage_source, 0,      1,      col_vec![3.0]).expect("Failed to make voltage source"); 
-    circuit_builder.add_element(resistor,       1,      2,      col_vec![2.0]).expect("Failed to make 2 ohm resistor");
-    circuit_builder.add_element(resistor,       2,      3,      col_vec![1.0]).expect("Failed to make first 1 ohm resistor");
-    circuit_builder.add_element(resistor,       3,      0,      col_vec![1.0]).expect("Failed to make second 1 ohm resistor");
+    // Add nodes to system
+    let soln = builder
+        // Add nodes:
+        .add_nodes(4)
 
-    // Solve the model
-    let _soln = circuit_builder.solve().expect("Failed to solve model");
+        // Ground node 0:
+        .configure_node(0, vec![0.0], true, None)
+        
+        // Add elements:
+        //           Element         Input   Output  Gain
+        .add_element(VOLTAGE_SOURCE, 0,      1,      vec![3.0]).expect("Failed to make voltage source") 
+        .add_element(RESISTOR,       1,      2,      vec![2.0]).expect("Failed to make 2 ohm resistor")
+        .add_element(RESISTOR,       2,      3,      vec![1.0]).expect("Failed to make first 1 ohm resistor")
+        .add_element(RESISTOR,       3,      0,      vec![1.0]).expect("Failed to make second 1 ohm resistor")
+        
+        // Solve the model:
+        .run_study().expect("Failed to solve model");
 
-    // println!("{:#?}", soln);
+    println!("{:#?}", soln);
 }
 
 #[test]
@@ -43,7 +46,7 @@ fn fuzz_resistor_flux_calcs()
         let node2 = GenericNode::new();
 
         set_node_potential(&Rc::downgrade(&node2), vec![output_potential]).unwrap();
-        let res = resistor(Rc::downgrade(&node1), Rc::downgrade(&node2), test_res).unwrap();
+        let res = resistor(Rc::downgrade(&node1), Rc::downgrade(&node2), vec![test_res]).unwrap();
 
         let expected = (1.0 - output_potential) / test_res;
 
