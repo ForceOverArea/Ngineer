@@ -1,0 +1,60 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "The Neapolitan model file format.",
+    "definitions": {
+        "node_config": {
+            "type": "object",
+            "properties": {
+                "potential": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "is_locked": {
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "type": [ "object", "null" ]
+                }
+            }
+        }
+    },
+    "type": "object",
+    "properties": {
+        "model_type": {
+            "type": "string"
+        },
+        "nodes": {
+            "type": "number"
+        },
+        "configuration": {
+            "type": "object",
+            "patternProperties": {
+                "[0-9]+": {
+                    "$ref": "#/definitions/node_config"
+                }
+            }
+        },
+        "elements": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "element_type": {
+                        "type": "string"
+                    },
+                    "input": {
+                        "type": "number"
+                    },
+                    "output": {
+                        "type": "number"
+                    },
+                    "gain": {
+                        "type": "array"
+                    }
+                }
+            }
+        }
+    }
+}
