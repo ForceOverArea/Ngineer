@@ -28,7 +28,7 @@ fn architecture_test()
         // Save model as a JSON string
         .save_model(&mut save).expect("Failed to save model")
         // Solve the model:
-        .run_study().expect("Failed to solve model");
+        .run_study(0.0001, 100).expect("Failed to solve model");
 
     println!("{:#?}", save);
     println!("{:#?}", soln);

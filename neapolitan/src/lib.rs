@@ -213,7 +213,7 @@ impl NodalAnalysisStudyBuilder
         Ok(self)
     }
 
-    pub fn run_study(self) -> anyhow::Result<NodalAnalysisStudyResult>
+    pub fn run_study(self, margin: f64, limit: usize) -> anyhow::Result<NodalAnalysisStudyResult>
     {
         let n = self.get_dimension();
         let mut nodes = vec![];
@@ -288,7 +288,7 @@ impl NodalAnalysisStudyBuilder
             }
         }
 
-        let soln = multivariate_newton_raphson(partials, &mut guess, 0.0001, 100)?;
+        let soln = multivariate_newton_raphson(partials, &mut guess, margin, limit)?;
 
         // Step 5 - Set model state to solution
         for (idx, component) in soln
