@@ -3,7 +3,7 @@ use std::rc::Rc;
 use rand::random;
 
 use neapolitan::{get_node_potential, set_node_potential, NodalAnalysisStudyBuilder};
-use neapolitan::ssdc_circuits::{resistor, RESISTOR, SSDC_CIRCUIT, VOLTAGE_SOURCE};
+use neapolitan::dc_circuits::{resistor, RESISTOR, DC_CIRCUIT, VOLTAGE_SOURCE};
 use neapolitan::modelling::node::GenericNode;
 
 
@@ -11,7 +11,7 @@ use neapolitan::modelling::node::GenericNode;
 fn architecture_test()
 {
     let mut save = String::new();
-    let builder = NodalAnalysisStudyBuilder::new(SSDC_CIRCUIT.to_string(), None)
+    let builder = NodalAnalysisStudyBuilder::new(DC_CIRCUIT.to_string(), None)
         .expect("failed to create model builder object");
     // Add nodes to system
     let soln = builder

@@ -7,7 +7,10 @@ pub mod errors;
 pub mod flux_formulas;
 /// Contains constructor functions for elements useful in
 /// modelling steady-state DC circuits.
-pub mod ssdc_circuits;
+pub mod dc_circuits;
+/// Contains constructor functions for elements usefule in
+/// modelling steady-state heat transfer problems.
+pub mod heat_transfer;
 
 // Standard modules
 use std::collections::HashMap;
@@ -38,21 +41,35 @@ use errors::{DroppedNodeError, NodalAnalysisConfigurationError, NodalAnalysisMod
 use modelling::element::{ElementConstructor, GenericElement};
 use modelling::node::GenericNode;
 use serde_json::to_string_pretty;
-use ssdc_circuits::{current_source, resistor, voltage_source};
+use heat_transfer::*;
+use dc_circuits::*;
 
 /// The default settings used by the neapolitan solver to build models
+#[inline]
 pub fn default_study_builder_config() -> HashMap<String, NodalAnalysisStudyConfigurator> 
 {
     HashMap::from([
-        ("ssdc_circuit".to_string(), NodalAnalysisStudyConfigurator 
+        (DC_CIRCUIT.to_string(), 
+        NodalAnalysisStudyConfigurator 
         { 
             dimension: 1, 
             elements: HashMap::from([
-                ("resistor",        resistor        as ElementConstructor),
-                ("voltage_source",  voltage_source  as ElementConstructor),
-                ("current_source",  current_source  as ElementConstructor),
-            ])
-        })
+                (RESISTOR,                resistor                as ElementConstructor),
+                (VOLTAGE_SOURCE,          voltage_source          as ElementConstructor),
+                (CURRENT_SOURCE,          current_source          as ElementConstructor),
+            ]),
+        }),
+        (HEAT_TRANSFER.to_string(), 
+        NodalAnalysisStudyConfigurator
+        {
+            dimension: 1,
+            elements: HashMap::from([
+                (CONDUCTOR,               conductor               as ElementConstructor),
+                (CONVECTION_INTERFACE,    convection_interface    as ElementConstructor),
+                (TEMPERATURE_DELTA,       temperature_delta       as ElementConstructor),
+                (HEAT_FLUX,               heat_flux               as ElementConstructor),
+            ]),
+        }),
     ])
 }
 
