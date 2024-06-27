@@ -8,7 +8,7 @@ where T: Element<T>
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         
-        let mut output = String::new();
+        let mut output = "[".to_string();
         let r = self.rows - 1;
         let c = self.cols - 1;
 
