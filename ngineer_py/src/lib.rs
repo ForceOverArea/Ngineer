@@ -2,7 +2,7 @@ mod gmatlib_py;
 mod geqslib_py;
 
 use pyo3::{pymodule, Bound, PyResult};
-use pyo3::types::{PyModule, PyModuleMethods};
+use pyo3::types::PyModule;
 use gmatlib_py::Matrix;
 
 #[pymodule]

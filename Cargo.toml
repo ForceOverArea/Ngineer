@@ -6,4 +6,5 @@ members = [
     "neapolitan",
     "nexsys",
     "ngineer_py",
+    "ngineer_gui/src-tauri",
 ]

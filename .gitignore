@@ -1,3 +1,13 @@
+# target folder and files for workspace
 /target
 /target/**
+
+# vscodecounter
 /.VSCodeCounter
+
+# tauri app 
+ngineer_gui/node_modules
+ngineer_gui/.vscode
+
+# test python scripts in workspace root
+*.py

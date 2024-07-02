@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pyo3 = "0.21.2"
+pyo3        = { version = "0.21.2", features = ["extension-module"] }
 geqslib     = { version = "0.1.4", path = "../geqslib"      }
 gmatlib     = { version = "0.2.0", path = "../gmatlib"      }
 nexsys      = { version = "1.0.0", path = "../nexsys"       } 
