@@ -5,9 +5,31 @@
 # vscodecounter
 /.VSCodeCounter
 
-# tauri app 
-ngineer_gui/node_modules
-ngineer_gui/.vscode
-
 # test python scripts in workspace root
 *.py
+
+# tauri app default ignores
+# Logs
+ngineer_gui/logs
+ngineer_gui/*.log
+ngineer_gui/npm-debug.log*
+ngineer_gui/yarn-debug.log*
+ngineer_gui/yarn-error.log*
+ngineer_gui/pnpm-debug.log*
+ngineer_gui/lerna-debug.log*
+
+ngineer_gui/node_modules
+ngineer_gui/dist
+ngineer_gui/dist-ssr
+ngineer_gui/*.local
+
+# Editor directories and files
+ngineer_gui/.vscode/*
+ngineer_gui/!.vscode/extensions.json
+ngineer_gui/.idea
+ngineer_gui/.DS_Store
+ngineer_gui/*.suo
+ngineer_gui/*.ntvs*
+ngineer_gui/*.njsproj
+ngineer_gui/*.sln
+ngineer_gui/*.sw?
