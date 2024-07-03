@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 pyo3        = { version = "0.21.2", features = ["extension-module"] }
 geqslib     = { version = "0.1.4", path = "../geqslib"      }
-gmatlib     = { version = "0.2.0", path = "../gmatlib"      }
+gmatlib     = { version = "0.2.1", path = "../gmatlib"      }
 nexsys      = { version = "1.0.0", path = "../nexsys"       } 
-neapolitan  = { version = "0.2.1", path = "../neapolitan"   }
+neapolitan  = { version = "0.3.0", path = "../neapolitan"   }
