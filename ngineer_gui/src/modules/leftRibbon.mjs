@@ -11,6 +11,7 @@
 // ========================= Imports ========================= //
 import { displayOnDebugRibbon } from "./debugRibbon.mjs";
 import { BG_COLORS } from "./colors.mjs";
+import { addFileToProjectRibbonMenu } from "./projectRibbon.mjs";
 
 // ========================= Constants ========================= //
 /**
@@ -27,6 +28,22 @@ export const MODEL_TAB = "modelTab";
  * ID attribute of the left ribbon menu
  */
 export const LEFT_RIBBON_MENU = "leftRibbon";
+
+// ========================= Classes ========================= // 
+
+/**
+ * 
+ */
+class LeftRibbonMenuState
+{
+    constructor()
+    {
+        if (undefined === this.instance)
+        {
+
+        }
+    }
+}
 
 // ========================= Functions ========================= // 
 /**
@@ -83,5 +100,12 @@ export function activateModelTab(event)
  */
 export function addFileToFilesRibbonMenu(file)
 {
-    const FILE_HTML = (fname) => `<div class="leftRibbonMenuFileItem">${fname}</div>`; 
+    let fileHtml = newTag(
+        "div", 
+        file,
+        "leftRibbonMenuFileItem", 
+        `addFileToProjectRibbonMenu('${file}')`
+    );
+
+    
 }

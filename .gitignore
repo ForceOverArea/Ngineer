@@ -23,6 +23,9 @@ ngineer_gui/dist
 ngineer_gui/dist-ssr
 ngineer_gui/*.local
 
+# ignore SCSS compiler output
+ngineer_gui/*.css
+
 # Editor directories and files
 ngineer_gui/.vscode/*
 ngineer_gui/!.vscode/extensions.json

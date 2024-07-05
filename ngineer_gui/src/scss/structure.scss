@@ -9,6 +9,9 @@
 /* ========================= Imports ========================= */
 @use "colors";
 
+/* ========================= Variables ========================= */
+$thinItemThickness: 30px;
+
 /* Comment/uncomment to see most tag borders */
 // .debug { border: 1px dashed red; }
 
@@ -52,7 +55,7 @@
  */
 #top
 {
-    height: 40px;
+    height: $thinItemThickness;
 }
 
 /* 
@@ -124,7 +127,7 @@
  
     /* Sizing */
     width: 100%;
-    height: 30px;
+    height: $thinItemThickness;
 
     /* Colors */
     background-color: #dedede;

@@ -23,16 +23,8 @@
     justify-content: left;
     margin-top: 10px;
     margin-left: 5%;
-    overflow-x :hidden;
-
-    // Behavior
-    cursor: pointer;
+    overflow-x: hidden;
 
     // Coloring
     background-color: colors.$lightest;
-}
-
-.leftRibbonMenuFileItem:hover
-{
-    background-color: colors.$light;
 }
