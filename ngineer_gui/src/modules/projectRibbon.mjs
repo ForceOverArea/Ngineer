@@ -9,6 +9,8 @@
 
 // ========================= Imports ========================= //
 import { BG_COLORS } from "./colors.mjs";
+import { displayOnDebugRibbon } from "./debugRibbon.mjs";
+import { newTag } from "./formatting.mjs";
 
 // ========================= Constants ========================= //
 /**
@@ -23,6 +25,7 @@ export const PROJECT_RIBBON = "projTabsBar";
  */
 export function addFileToProjectRibbonMenu(file)
 {
-    let fileHtml = `<span class="projectRibbonFileItem">${file}</span>`;
-    document.getElementById(PROJECT_RIBBON).innerHTML += fileHtml;
+    let tag = newTag("div", file, "projectRibbonFileItem");
+    document.getElementById(PROJECT_RIBBON).innerHTML += tag;
+    displayOnDebugRibbon(`focusing file: ${file}`);
 }

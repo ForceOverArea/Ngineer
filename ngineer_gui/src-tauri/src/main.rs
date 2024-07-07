@@ -10,12 +10,6 @@ struct Payload
     message: String,
 }
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 fn main() 
 {
     // File Submenu
@@ -42,13 +36,12 @@ fn main()
                 "new file" => 
                 { 
                     event.window()
-                        .emit("NewFileButtonClicked", Payload { message: "NewFile.txt".to_string() })
+                        .emit("new-file-button-clicked", Payload { message: "NewFile.txt".to_string() })
                         .unwrap(); 
                 },
                 _ => {},
             }
         })
-        .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

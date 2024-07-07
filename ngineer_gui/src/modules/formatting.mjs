@@ -19,9 +19,9 @@ import { displayOnDebugRibbon } from "./debugRibbon.mjs";
 /**
  * A template for creating a valid HTML tag as a string.
  * @param {String} tagType
- * @param {String} tagContent
- * @param {String} tagClass 
- * @param {String} onclickFn 
+ * @param {String | undefined} tagContent
+ * @param {String | undefined} tagClass 
+ * @param {String | undefined} onclickFn 
  */
 export function newTag(tagType, tagContent, tagClass, onclickFn)
 {

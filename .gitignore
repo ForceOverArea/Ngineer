@@ -18,13 +18,14 @@ ngineer_gui/yarn-error.log*
 ngineer_gui/pnpm-debug.log*
 ngineer_gui/lerna-debug.log*
 
-ngineer_gui/node_modules
+ngineer_gui/node_modules/**
 ngineer_gui/dist
 ngineer_gui/dist-ssr
 ngineer_gui/*.local
 
 # ignore SCSS compiler output
-ngineer_gui/*.css
+ngineer_gui/src/styles.css.map
+ngineer_gui/src/styles.css
 
 # Editor directories and files
 ngineer_gui/.vscode/*

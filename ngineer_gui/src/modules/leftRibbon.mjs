@@ -100,12 +100,9 @@ export function activateModelTab(event)
  */
 export function addFileToFilesRibbonMenu(file)
 {
-    let fileHtml = newTag(
-        "div", 
-        file,
+    let tag = newTag("div", file,
         "leftRibbonMenuFileItem", 
         `addFileToProjectRibbonMenu('${file}')`
     );
-
-    
+    document.getElementById("leftRibbon").innerHTML = tag;
 }

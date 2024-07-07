@@ -10,7 +10,11 @@
 // ========================= Imports ========================= //
 import { activateFilesTab, activateModelTab, FILES_TAB, MODEL_TAB } from "./modules/leftRibbon.mjs";
 import { displayOnDebugRibbon } from "./modules/debugRibbon.mjs";
-import { listen } from "@tauri-apps/api/event";
+import { addFileToFilesRibbonMenu } from "./modules/leftRibbon.mjs";
+import { addFileToProjectRibbonMenu } from "./modules/projectRibbon.mjs";
+// import { listen } from "@tauri-apps/api/event";
+
+export { addFileToFilesRibbonMenu, addFileToProjectRibbonMenu };
 
 // ========================= Constants ========================= //
 const { invoke } = window.__TAURI__.tauri;
@@ -19,28 +23,20 @@ const { invoke } = window.__TAURI__.tauri;
 document.getElementById(FILES_TAB).onclick = activateFilesTab;
 document.getElementById(MODEL_TAB).onclick = activateModelTab;
 
-window.addEventListener(
-    "NewFileButtonClicked", 
-    (event) => 
-    {
-        displayOnDebugRibbon(
-            event.payload.message
-        );
-    }
-)
+// await listen("new-file-button-clicked", (event) => { displayOnDebugRibbon(event.payload.message); });
 
-window.addEventListener("DOMContentLoaded", () => 
-{
-    greetInputEl = document.querySelector("#greet-input");
-    greetMsgEl = document.querySelector("#greet-msg");
-    
-    document.querySelector("#greet-form")
-        .addEventListener(
-            "submit", 
-            (e) => 
-            {
-                e.preventDefault();
-                greet();
-            }
-        );
-});
+window.addEventListener(
+    "DOMContentLoaded", 
+    () => 
+    {
+        document.querySelector("#leftRibbon")
+            .addEventListener(
+                "new-file-button-clicked",
+                (event) => 
+                {
+                    event.preventDefault();
+                    displayOnDebugRibbon("ligma");
+                }
+            );
+    }
+);
