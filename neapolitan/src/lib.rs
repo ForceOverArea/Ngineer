@@ -12,15 +12,19 @@ pub mod dc_circuits;
 /// modelling steady-state heat transfer problems.
 pub mod heat_transfer;
 
+pub mod structures_2d;
+
 // Standard modules
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 
-use anyhow::Ok;
+// Local modules 
 use modelling::{NodalAnalysisElement, NodalAnalysisModel, NodalMetadata};
+
 // 3rd party modules
+use anyhow::Ok;
 use serde::Serialize;
 use geqslib::newton::multivariate_newton_raphson;
 
@@ -51,7 +55,7 @@ pub fn default_study_builder_config() -> HashMap<String, NodalAnalysisStudyConfi
     HashMap::from([
         (DC_CIRCUIT.to_string(), 
         NodalAnalysisStudyConfigurator 
-        { 
+        {
             dimension: 1, 
             elements: HashMap::from([
                 (RESISTOR,                resistor                as ElementConstructor),
