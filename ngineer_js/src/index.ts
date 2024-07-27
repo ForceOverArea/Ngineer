@@ -11,12 +11,3 @@ function writeToDebugRibbon(msg: string): void
 {
     DEBUG_RIBBON.getter().innerText = msg;
 }
-
-createLeftRibbonMenuFileItem('config.ligma');
-createLeftRibbonMenuFileItem('config.ligma');
-createLeftRibbonMenuFileItem('config.ligma');
-createLeftRibbonMenuFileItem('config.ligma');
-createLeftRibbonMenuFileItem('config.ligma');
-createLeftRibbonMenuFileItem('config.ligma');
-createLeftRibbonMenuFileItem('config.ligma');
-createLeftRibbonMenuFileItem('config.ligma');
