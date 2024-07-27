@@ -1,0 +1,26 @@
+@use "constants";
+
+.left-ribbon-menu-file-item
+{
+    // size
+    height: constants.$thinItemThickness;
+    width: 100%;
+
+    // colors
+    background-color: constants.$lightest;
+
+    // format
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    // margin-top: 10px;
+    // margin-left: 5px;
+    overflow-x :hidden;
+    cursor: pointer;
+    user-select: none;
+}
+
+.left-ribbon-menu-file-item:hover
+{
+    background-color: constants.$light;
+}

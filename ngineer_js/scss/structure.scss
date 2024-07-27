@@ -1,0 +1,107 @@
+@use "leftRibbonMenu";
+@use "topRibbonMenu";
+@use "constants";
+
+.outermost-container
+{
+  // position
+  position: absolute;
+  left: 0px;
+  top: 0px; 
+
+  // size
+  height: 100vh;
+  width: 100%;
+
+  // format
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.left
+{
+  // position
+  float: left;
+
+  // size
+  width: 15%;
+  height: constants.$maxHeight;
+}
+
+.right
+{
+  // size
+  flex-grow: 1;
+  height: constants.$maxHeight;
+}
+
+.top
+{
+  // size
+  height: constants.$thinItemThickness;
+}
+
+#mid-container
+{
+  // format
+  flex: 1;
+}
+
+#left-ribbon
+{
+  // color
+  background-color: constants.$lightest;
+}
+
+#left-ribbon-tabs
+{
+  // format
+  display: flex;
+}
+
+.left-ribbon-tab
+{
+  // format
+  display: flex;
+  flex: 1;
+  cursor: pointer;
+
+  // content
+  justify-content: center;
+  align-items: center;
+
+  // colors
+  background-color: constants.$lightest;
+}
+
+#model-tab
+{
+  // colors
+  background-color: constants.$dark;
+}
+
+#proj-tabs-bar
+{
+  // colors
+  background-color: constants.$dark;
+
+  // format
+  display: flex;
+}
+
+#debug-ribbon
+{
+  // position
+  left: 0px;
+  bottom: 0px;
+
+  // size
+  width: 100%;
+  height: constants.$thinItemThickness;
+
+  // colors
+  background-color: constants.$dark;
+}
