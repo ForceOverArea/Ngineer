@@ -21,7 +21,8 @@ function serveStatic(expressAppInstance, staticContentDir)
 const app = express();
 
 // Allow static serving from these folders
-serveStatic(app, 'target');
+serveStatic(app, 'ngineer_js/target');
+serveStatic(app, 'ngineer_js');
 serveStatic(app, '');
 
 // Serve content at root
