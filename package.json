@@ -1,5 +1,23 @@
 {
+  "name": "tauri-sandbox",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "build": "npm run clean && npm run compileScss && npm run compileTs",
+    "clean": "rm -rf target && mkdir target",
+    "serve": "node server.js",
+    "compileScss": "node_modules/.bin/sass ./scss/style.scss ./target/style.css",
+    "compileTs": "node_modules/.bin/tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
-    "@tauri-apps/api": "^1.6.0"
+    "express": "^4.19.2",
+    "typescript": "^5.5.3"
+  },
+  "devDependencies": {
+    "sass": "^1.77.7"
   }
 }

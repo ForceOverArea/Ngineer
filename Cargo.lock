@@ -157,7 +157,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ngineer_js"
+name = "ngineer_js_bindings"
 version = "0.1.0"
 dependencies = [
  "wasm-bindgen",

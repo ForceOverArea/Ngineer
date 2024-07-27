@@ -6,5 +6,5 @@ members = [
     "neapolitan",
     "nexsys",
     "ngineer_py",
-    "ngineer_js",
+    "ngineer_js/ngineer_js_bindings",
 ]
