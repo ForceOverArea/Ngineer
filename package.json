@@ -4,10 +4,10 @@
   "main": "server.js",
   "scripts": {
     "build": "npm run clean && npm run compileScss && npm run compileTs",
-    "clean": "rm -rf target && mkdir target",
-    "serve": "node server.js",
-    "compileScss": "node_modules/.bin/sass ./scss/style.scss ./target/style.css",
-    "compileTs": "node_modules/.bin/tsc",
+    "clean": "rm -rf ngineer_js/target && mkdir ngineer_js/target",
+    "serve": "node ngineer_js/server.js",
+    "compileScss": "node_modules/.bin/sass ngineer_js/scss/style.scss ngineer_js/target/style.css",
+    "compileTs": "node_modules/.bin/tsc -p ngineer_js/tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
