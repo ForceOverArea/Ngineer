@@ -46,3 +46,14 @@ export function newTag(tagType, tagContent, tagClass, onclickFn)
 
     return `<${tagType}${classString}${onclickString}></${tagType}>`
 }
+
+class;
+
+class HTMLWidget
+{
+    constructor()
+    {
+        this.idName = "";
+        this.className = "";
+    }
+}
