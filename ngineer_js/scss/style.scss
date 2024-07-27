@@ -1,0 +1,15 @@
+@use "constants";
+@use "structure";
+
+:root
+{
+  // font
+  font-family: monospace;
+
+  // color
+  color: constants.$fontColor;
+  background-color: constants.$darkest;
+}
+
+// show outline of 'debug' classed tags
+// .debug { border: 1px dashed red; }

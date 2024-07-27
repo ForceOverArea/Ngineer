@@ -1,0 +1,118 @@
+.left-ribbon-menu-file-item {
+  height: 30px;
+  width: 100%;
+  background-color: #2e2e2e;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  overflow-x: hidden;
+  cursor: pointer;
+  user-select: none;
+}
+
+.left-ribbon-menu-file-item:hover {
+  background-color: #161616;
+}
+
+.top-ribbon-menu-file-item {
+  height: 30px;
+  width: 150px;
+  background-color: #161616;
+  display: flex;
+  float: left;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  cursor: pointer;
+}
+.top-ribbon-menu-file-item span.filename-tag {
+  margin-left: 7px;
+}
+.top-ribbon-menu-file-item span.close-button {
+  color: #f6f6f6;
+  position: relative;
+  float: right;
+  margin-right: 7px;
+  cursor: pointer;
+}
+.top-ribbon-menu-file-item span.close-button:hover {
+  color: #d0d0d0;
+}
+
+.top-ribbon-menu-file-item:hover {
+  background-color: #161616;
+}
+
+.outermost-container {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.left {
+  float: left;
+  width: 15%;
+  height: 100%;
+}
+
+.right {
+  flex-grow: 1;
+  height: 100%;
+}
+
+.top {
+  height: 30px;
+}
+
+#mid-container {
+  flex: 1;
+}
+
+#left-ribbon {
+  background-color: #2e2e2e;
+}
+
+#left-ribbon-tabs {
+  display: flex;
+}
+
+.left-ribbon-tab {
+  display: flex;
+  flex: 1;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+  background-color: #2e2e2e;
+}
+
+#model-tab {
+  background-color: #1e1e1e;
+}
+
+#proj-tabs-bar {
+  background-color: #1e1e1e;
+  display: flex;
+}
+
+#debug-ribbon {
+  left: 0px;
+  bottom: 0px;
+  width: 100%;
+  height: 30px;
+  background-color: #1e1e1e;
+}
+
+:root {
+  font-family: monospace;
+  color: #f6f6f6;
+  background-color: #161616;
+}
+
+/*# sourceMappingURL=style.css.map */

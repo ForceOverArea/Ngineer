@@ -15,7 +15,6 @@ use std::mem::swap;
 use anyhow::{Error, Result};
 use error::*;
 use num_traits::Num;
-pub use trait_impls::*;
 
 /// A helper trait to constrain the type of the elements of a `Matrix<T>`.
 pub trait Element<T>: Num + Copy + Debug + Display + AddAssign + MulAssign + SubAssign + Neg<Output = T> {}

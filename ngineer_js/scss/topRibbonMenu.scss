@@ -1,0 +1,51 @@
+@use "constants";
+
+.top-ribbon-menu-file-item
+{
+    // size
+    height: constants.$thinItemThickness;
+    width: 150px;
+
+    // color
+    background-color: constants.$darkest;
+
+    // format
+    display: flex;
+    float: left;
+    justify-content: space-between;
+    align-items: center;
+
+    // behavior
+    user-select: none;
+    cursor: pointer;
+
+    span.filename-tag
+    {
+        margin-left: 7px;
+    }
+
+    span.close-button
+    {
+        // color
+        color: constants.$fontColor;
+        
+        // location
+        position: relative;
+        float: right;
+        margin-right: 7px;
+
+        // behavior
+        cursor: pointer;
+    }
+
+    span.close-button:hover
+    {
+        // color
+        color: constants.$darkFontColor;
+    }
+}
+
+.top-ribbon-menu-file-item:hover
+{
+    background-color: constants.$light;
+}

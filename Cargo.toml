@@ -5,6 +5,5 @@ members = [
     "geqslib",
     "neapolitan",
     "nexsys",
-    "ngineer_py",
-    "ngineer_gui/src-tauri",
+    "ngineer_js/ngineer_js_bindings",
 ]
