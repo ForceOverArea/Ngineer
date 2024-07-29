@@ -1,9 +1,7 @@
-var ElementRegistrationErrorKind;
-(function (ElementRegistrationErrorKind) {
-    ElementRegistrationErrorKind["IdCollision"] = "the desired element id already exists and is registered with the application";
-    ElementRegistrationErrorKind["UnregisteredIdExists"] = "the desired element id already exists in the DOM, but is not registered";
-})(ElementRegistrationErrorKind || (ElementRegistrationErrorKind = {}));
-;
+var ElementRegistrationErrorKind = {
+    IdCollision: 'the desired element id already exists and is registered with the application',
+    UnregisteredIdExists: 'the desired element id already exists in the DOM, but is not registered',
+};
 var ElementRegistrationError = (function () {
     function ElementRegistrationError(variety, id) {
         this.name = 'ElementRegistrationError';
