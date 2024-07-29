@@ -1,12 +1,22 @@
 import { registerElementId } from './tagbuilder.js'
 
-export const enum CommonTagClasses 
+export const CommonBGColors = 
 {
-    LeftRibbonMenuFileItem = 'left-ribbon-menu-file-item debug',
-    TopRibbonMenuFileItem = 'top-ribbon-menu-file-item debug',
-    FilenameTag = 'filename-tag debug',
-    CloseButton = 'close-button debug',
+    Lightest:   '#2e2e2e',
+    Light:      '#161616',
+    Dark:       '#1e1e1e',
+    Darkest:    '#161616',
 };
+type CommonBGColors = typeof CommonBGColors[keyof typeof CommonBGColors]
+
+export const CommonTagClasses =
+{
+    LeftRibbonMenuFileItem: 'left-ribbon-menu-file-item debug',
+    TopRibbonMenuFileItem: 'top-ribbon-menu-file-item debug',
+    FilenameTag: 'filename-tag debug',
+    CloseButton: 'close-button debug',
+};
+type CommonTagClasses = typeof CommonTagClasses[keyof typeof CommonTagClasses];
 
 // Register ids written in HTML file
 export const TOP_BAR           = registerElementId('top-bar');

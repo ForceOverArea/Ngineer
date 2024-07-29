@@ -102,6 +102,40 @@
   width: 100%;
   height: constants.$thinItemThickness;
 
+  // font
+  font-size: constants.$thinItemFontSize;
+
   // colors
+  color: constants.$darkFontColor;
   background-color: constants.$dark;
+}
+
+.file-menu
+{
+  // format
+  display: flex;
+  float: left;
+
+  // size
+  height: constants.$thinItemThickness;
+
+  span
+  {
+    // format
+    cursor: pointer;
+
+    // size
+    font-size: constants.$thinItemFontSize;
+    
+    // positioning
+    margin-left: 10px;
+    margin-right: 20px;
+  }
+
+  span:hover
+  {
+    // colors
+    color: constants.$darkerFontColor;
+    // background-color: constants.$dark;
+  }
 }

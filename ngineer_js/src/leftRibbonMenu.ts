@@ -58,7 +58,8 @@ export function generateFocusCallback(filename: string, elementId?: string): (e:
         }
         else
         {
-
+            // Pretty sure I need to write a callback to deregister the element if it 
+            // fails here? otherwise this branch might not be necessary.
         }
     };
 }

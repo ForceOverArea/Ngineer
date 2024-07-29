@@ -10,11 +10,12 @@ export type TagGetter = () => HTMLElement;
 /**
  * The different error messages that should be shown by an `ElementRagistrationError`
  */
-enum ElementRegistrationErrorKind 
+const ElementRegistrationErrorKind =
 {
-    IdCollision = 'the desired element id already exists and is registered with the application',
-    UnregisteredIdExists = 'the desired element id already exists in the DOM, but is not registered',
+    IdCollision: 'the desired element id already exists and is registered with the application',
+    UnregisteredIdExists: 'the desired element id already exists in the DOM, but is not registered',
 };
+type ElementRegistrationErrorKind = typeof ElementRegistrationErrorKind[keyof typeof ElementRegistrationErrorKind];
 
 /**
  * An error type returned when registering a tag with the application

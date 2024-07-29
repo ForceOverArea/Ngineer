@@ -1,13 +1,5 @@
-import { TagGetter, TagBuilder, registerElementId, generateUniqueElementId } from './tagbuilder.js'
-import { DEBUG_RIBBON } from './common.js'
-import { createLeftRibbonMenuFileItem } from './leftRibbonMenu.js'
+import { FILES_TAB, MODEL_TAB } from './common.js'
+import { LEFT_PANEL_MANAGER } from './panelManager.js'
 
-/**
- * Prints a message to the debug ribbon at the 
- * bottom of the Ngineer UI.
- * @param msg the message to display on the debug ribbon.
- */
-function writeToDebugRibbon(msg: string): void
-{
-    DEBUG_RIBBON.getter().innerText = msg;
-}
+FILES_TAB.getter().onclick = LEFT_PANEL_MANAGER.focusFilesTab;
+MODEL_TAB.getter().onclick = LEFT_PANEL_MANAGER.focusModelTab;
