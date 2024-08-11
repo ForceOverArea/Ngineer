@@ -2,7 +2,7 @@ use std::ffi::{c_double, c_uint, c_void};
 use std::mem;
 use std::panic::catch_unwind;
 use std::ptr::null_mut;
-use crate::Matrix;
+use crate::{Matrix, MatrixInversionError};
 
 #[no_mangle]
 pub extern "C" fn new_double_matrix(rows: c_uint, cols: c_uint) -> *mut c_void
@@ -203,7 +203,7 @@ pub extern "C" fn trace(ptr: *mut c_void) -> c_double
         let trace = match a.trace()
         {
             Ok(t) => t,
-            Err(_) => c_double::MIN
+            Err(_) => c_double::NAN
         };
 
         mem::forget(a); // Prevent drop that would deallocate the matrix data
@@ -243,8 +243,17 @@ pub extern "C" fn try_inplace_invert(ptr: *mut c_void) -> c_uint
         let mut a = unsafe { Box::from_raw(ptr as *mut Matrix<c_double>) };
         let status = match a.try_inplace_invert()
         {
-            Ok(_)  => 1,
-            Err(_) => 0,
+            Ok(_)  => c_uint::MAX,
+            Err(e) => 
+            {
+                match e.downcast()
+                {
+                    Ok(MatrixInversionError::DeterminantWasZero)    => 0,
+                    Ok(MatrixInversionError::SingularValueWasZero)  => 1,
+                    Ok(MatrixInversionError::ZeroDuringInversion)   => 2,
+                    Err(_) => 3,
+                }
+            }
         };
     
         mem::forget(a);
