@@ -28,3 +28,5 @@ export const MID_CONTAINER     = registerElementId('mid-container');
 export const LEFT_RIBBON       = registerElementId('left-ribbon');
 export const PROJ_PANE         = registerElementId('proj-pane');
 export const DEBUG_RIBBON      = registerElementId('debug-ribbon');
+export const OPEN_PROJECT      = registerElementId('dropdown-file-open-project');
+export const SAVE_PROJECT      = registerElementId('dropdown-file-save-project');
