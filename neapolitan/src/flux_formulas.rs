@@ -1,16 +1,15 @@
 use gmatlib::Matrix;
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use crate::modelling::node::GenericNode;
 
 pub fn normal_flux(
-    inode_ref: Rc<RefCell<GenericNode>>, 
-    onode_ref: Rc<RefCell<GenericNode>>, 
-    gain: &Matrix<f64>, 
-    _drives_output: bool
-) -> anyhow::Result<Matrix<f64>>
-{
+    inode_ref: Rc<RefCell<GenericNode>>,
+    onode_ref: Rc<RefCell<GenericNode>>,
+    gain: &Matrix<f64>,
+    _drives_output: bool,
+) -> anyhow::Result<Matrix<f64>> {
     let onode = onode_ref.try_borrow()?;
     let inode = inode_ref.try_borrow()?;
 
@@ -20,17 +19,15 @@ pub fn normal_flux(
 }
 
 pub fn observe_flux(
-    inode_ref: Rc<RefCell<GenericNode>>, 
-    onode_ref: Rc<RefCell<GenericNode>>, 
-    delta: &Matrix<f64>, 
-    drives_output: bool
-) -> anyhow::Result<Matrix<f64>>
-{
+    inode_ref: Rc<RefCell<GenericNode>>,
+    onode_ref: Rc<RefCell<GenericNode>>,
+    delta: &Matrix<f64>,
+    drives_output: bool,
+) -> anyhow::Result<Matrix<f64>> {
     let sub_ref;
 
     // Adjust potential of submissive node and drop mutable ref
-    if drives_output
-    {
+    if drives_output {
         let mut sub = onode_ref.try_borrow_mut()?;
         let dom = inode_ref.try_borrow()?;
 
@@ -39,9 +36,7 @@ pub fn observe_flux(
         drop(sub);
 
         sub_ref = onode_ref;
-    }
-    else
-    {
+    } else {
         let mut sub = inode_ref.try_borrow_mut()?;
         let dom = onode_ref.try_borrow()?;
 
@@ -52,8 +47,7 @@ pub fn observe_flux(
         sub_ref = inode_ref;
     }
 
-    let mut discrepancy = sub_ref.try_borrow()?
-        .get_flux_discrepancy()?;
+    let mut discrepancy = sub_ref.try_borrow()?.get_flux_discrepancy()?;
 
     discrepancy.inplace_scale(-1.0);
 
@@ -61,11 +55,10 @@ pub fn observe_flux(
 }
 
 pub fn constant_flux(
-    _inode_ref: Rc<RefCell<GenericNode>>, 
-    _onode_ref: Rc<RefCell<GenericNode>>, 
-    flux: &Matrix<f64>, 
-    _drives_output: bool
-) -> anyhow::Result<Matrix<f64>>
-{
+    _inode_ref: Rc<RefCell<GenericNode>>,
+    _onode_ref: Rc<RefCell<GenericNode>>,
+    flux: &Matrix<f64>,
+    _drives_output: bool,
+) -> anyhow::Result<Matrix<f64>> {
     Ok(flux.clone())
 }

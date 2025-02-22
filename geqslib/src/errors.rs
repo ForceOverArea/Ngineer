@@ -47,7 +47,10 @@ impl_err! {
 
 #[derive(Debug)]
 pub struct CompiledExpressionLookupError;
-impl_err!(CompiledExpressionLookupError, "failed to find given variable in the function's variable lookup table");
+impl_err!(
+    CompiledExpressionLookupError,
+    "failed to find given variable in the function's variable lookup table"
+);
 
 #[derive(Debug)]
 pub enum ExpressionCompilationError {
@@ -81,7 +84,7 @@ pub enum EquationSolverError {
     FoundExpression,
     FoundMultipleEquations,
 }
-impl_err!{
+impl_err! {
     EquationSolverError,
     EquationSolverError::SingleUnknownNotFound, "found either no unknowns in given context or too many to solve a single equation",
     EquationSolverError::FoundExpression, "expected an '=' in the given equation string, found none",

@@ -1,10 +1,11 @@
-use nexsys::{parsing::{conditionals, conversions}, units::unit_data};
+use nexsys::{
+    parsing::{conditionals, conversions},
+    units::unit_data,
+};
 
 #[test]
 fn test_conditional_parser() {
-
-    let my_code = 
-r#"
+    let my_code = r#"
 If you see this in the output you're in it deep
     if a < b:
     b - a
@@ -19,9 +20,7 @@ end"#;
 
 #[test]
 fn test_comparison_op_parser() {
-
-    let my_code = 
-r#"
+    let my_code = r#"
 If you see this in the output you're in it deep
     if a =< b:
     b - a = 0
@@ -29,16 +28,18 @@ else:
     a - b = 0
 end"#;
 
-    match conditionals(my_code){
-        Err(e) => assert!(e.to_string() == "invalid comparison operator. valid operators are: <, >, <=, >=, ==, !="),
-        _ => panic!()
+    match conditionals(my_code) {
+        Err(e) => assert!(
+            e.to_string()
+                == "invalid comparison operator. valid operators are: <, >, <=, >=, ==, !="
+        ),
+        _ => panic!(),
     }
 }
 
 #[test]
 fn test_nested_conditional_formatting() {
-    let my_code = 
-r#"
+    let my_code = r#"
 If you see this in the output you're in it deep
 
 if a < b:
@@ -67,7 +68,6 @@ fn test_conversion_parser() {
 
 #[test]
 fn test_unit_data() {
-
     let _ud = unit_data();
     // println!("{}",_ud["VELOCITY"]["in/s"]);
     // println!("{}",_ud["VELOCITY"]["cm/s"]);
