@@ -143,8 +143,8 @@ namespace _ngffi_
         /// @param ptr a raw pointer to the matrix to free
         void free_double_matrix(void *ptr);
 #ifdef __cplusplus
-    }
-}
+    } // extern "C"
+} // namespace _ngffi_
 
 /// @brief contains a C++-compatible class and methods for accessing the Rust gmatlib module 
 namespace ngineer
@@ -446,7 +446,7 @@ namespace ngineer
         {
             _ngffi_::free_double_matrix(ptr);
         }
-    };
-}
+    }; // class Matrix
+} // namespace ngineer
 #endif // __cplusplus
 #endif // _GMATLIB_H_
